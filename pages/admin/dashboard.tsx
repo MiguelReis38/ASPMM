@@ -426,6 +426,10 @@ export default function AdminDashboard() {
               <form onSubmit={handleCreateMember} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Nome Associado" name="fullName" value={newMember.fullName} onChange={handleNewMemberChange} required />
+                  <Input label="E-mail (Para Login)" type="email" name="email" value={newMember.email} onChange={handleNewMemberChange} required />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Situação</label>
                     <select name="category" value={newMember.category} onChange={handleNewMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none">
@@ -433,11 +437,7 @@ export default function AdminDashboard() {
                       {SITUACAO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Endereço" name="address" value={newMember.address} onChange={handleNewMemberChange} required />
-                  <Input label="Data de Nascimento" type="date" name="birthDate" value={newMember.birthDate} onChange={handleNewMemberChange} required />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -448,7 +448,11 @@ export default function AdminDashboard() {
                       {ORGAO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                   </div>
-                  <Input label="Data de Validade" type="date" name="validityDate" value={newMember.validityDate} onChange={handleNewMemberChange} required />
+                  <Input label="Data de Validade" type="date" name="validityDate" value={newMember.validityDate} onChange={handleNewMemberChange} />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                   <Input label="Data de Nascimento (Usada como Senha)" type="date" name="birthDate" value={newMember.birthDate} onChange={handleNewMemberChange} required />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -461,12 +465,6 @@ export default function AdminDashboard() {
 
                 <Input label="Titular (Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: 849302 (Se for dependente)" />
                 <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} required />
-
-                <hr className="border-gray-100" />
-                <p className="text-xs text-gray-500">Opcional: Criar acesso de login. A senha será automaticamente a data de nascimento (DDMMAAAA).</p>
-                <div className="grid grid-cols-1 gap-4">
-                  <Input label="E-mail" type="email" name="email" value={newMember.email} onChange={handleNewMemberChange} />
-                </div>
 
                 <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white" isLoading={loading}>+ Salvar Associado</Button>
               </form>
