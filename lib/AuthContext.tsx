@@ -5,7 +5,7 @@ import { supabase } from './supabase'
 interface MemberData {
   id: string
   member_code: string
-  role: 'admin' | 'member'
+  role: 'admin' | 'member' | 'president'
   full_name: string
   cpf: string
   status: string

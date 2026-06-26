@@ -28,7 +28,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
         
         <nav className="flex-1 px-4 py-6 space-y-2">
-          {member?.role === 'admin' ? (
+          {member?.role === 'admin' || member?.role === 'president' ? (
             <>
               <Link href="/admin/dashboard" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.pathname === '/admin/dashboard' ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
                 <LayoutDashboard size={20} /> Painel Admin
@@ -50,7 +50,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-medium truncate">{member?.full_name}</p>
-              <p className="text-xs text-brand-blueLight truncate">{member?.role === 'admin' ? 'Administrador' : 'Associado'}</p>
+              <p className="text-xs text-brand-blueLight truncate">{member?.role === 'president' ? 'Presidente' : member?.role === 'admin' ? 'Administrador' : 'Associado'}</p>
             </div>
           </div>
           <button 

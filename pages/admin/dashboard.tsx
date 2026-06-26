@@ -44,9 +44,11 @@ export default function AdminDashboard() {
   const ORGAO_OPTIONS = ["CAMARA", "CODEMAR", "DAEM", "IPREM", "PREFEITURA"]
 
   useEffect(() => {
-    if (member?.role === 'admin') {
+    if (member?.role === 'admin' || member?.role === 'president') {
       fetchMembers()
-      fetchPayments()
+      if (member?.role === 'president') {
+        fetchPayments()
+      }
     }
   }, [member])
 
@@ -269,12 +271,12 @@ export default function AdminDashboard() {
     })
   }
 
-  if (member?.role !== 'admin') return <Layout><div className="p-10 text-center">Acesso Negado</div></Layout>
+  if (member?.role !== 'admin' && member?.role !== 'president') return <Layout><div className="p-10 text-center">Acesso Negado</div></Layout>
 
   const navTabs = [
     { id: 'associados', label: 'Associados' },
     { id: 'cadastros', label: 'Cadastros e Importação' },
-    { id: 'financeiro', label: 'Financeiro' },
+    ...(member?.role === 'president' ? [{ id: 'financeiro', label: 'Financeiro' }] : []),
     { id: 'comunicacao', label: 'Comunicação' },
   ];
 
