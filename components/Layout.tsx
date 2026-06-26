@@ -1,0 +1,73 @@
+import React from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { useAuth } from '../lib/AuthContext'
+import { supabase } from '../lib/supabase'
+import { LogOut, User, LayoutDashboard, Settings } from 'lucide-react'
+
+export const Layout = ({ children }: { children: React.ReactNode }) => {
+  const { member, session } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
+  if (!session) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">{children}</div>
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans">
+      {/* Sidebar */}
+      <aside className="w-full md:w-64 bg-brand-blue text-white shadow-premium flex flex-col">
+        <div className="p-6 text-center border-b border-white/20">
+          <h1 className="text-2xl font-bold tracking-wider">ASPMM</h1>
+          <p className="text-sm text-brand-blueLight mt-1 opacity-80">Portal do Servidor</p>
+        </div>
+        
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          {member?.role === 'admin' ? (
+            <>
+              <Link href="/admin/dashboard" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.pathname === '/admin/dashboard' ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                <LayoutDashboard size={20} /> Painel Admin
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/member/dashboard" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.pathname === '/member/dashboard' ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                <User size={20} /> Meu Perfil
+              </Link>
+            </>
+          )}
+        </nav>
+
+        <div className="p-4 border-t border-white/20">
+          <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="w-10 h-10 rounded-full bg-brand-red flex items-center justify-center text-white font-bold shadow-md">
+              {member?.full_name?.charAt(0) || 'U'}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium truncate">{member?.full_name}</p>
+              <p className="text-xs text-brand-blueLight truncate">{member?.role === 'admin' ? 'Administrador' : 'Associado'}</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-brand-redLight hover:text-white hover:bg-brand-red rounded-lg transition-colors"
+          >
+            <LogOut size={16} /> Sair
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-4 md:p-8 overflow-auto h-screen">
+        <div className="max-w-6xl mx-auto">
+          {children}
+        </div>
+      </main>
+    </div>
+  )
+}
