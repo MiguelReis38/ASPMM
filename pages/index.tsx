@@ -18,7 +18,7 @@ export default function Login() {
   useEffect(() => {
     if (session) {
       if (member) {
-        if (member.role === 'admin') {
+        if (member.role === 'admin' || member.role === 'president') {
           router.push('/admin/dashboard')
         } else {
           router.push('/member/dashboard')
