@@ -91,12 +91,7 @@ export default function Login() {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
-          Não é sócio?{' '}
-          <Link href="/register" className="text-brand-blue font-semibold hover:underline">
-            Associe-se agora
-          </Link>
-        </div>
+
       </div>
     </div>
   )
