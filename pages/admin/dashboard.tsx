@@ -46,12 +46,21 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const SITUACAO_OPTIONS = [
-    "Titular", "Dependente", "Dep. Não Pagante Menor", "Dep. Não Pagante Maior", 
-    "Branca Carterinha", "Amarela Carterinha", "Verde Carterinha", "Isento"
-  ]
+  const ORGAO_OPTIONS = ["ASPMM", "CAMARA", "CODEMAR", "DAEM", "IPREM", "PREFEITURA"]
 
-  const ORGAO_OPTIONS = ["CAMARA", "CODEMAR", "DAEM", "IPREM", "PREFEITURA"]
+  const getSituacaoOptions = (workplace: string) => {
+    if (workplace === 'ASPMM') {
+      return ["Verde Carterinha", "Amarela Carterinha", "PCD"]
+    }
+    return [
+      "Titular", 
+      "Dependente", 
+      "Dep. Não Pagante Menor", 
+      "Dep. Não Pagante Maior", 
+      "Branca Carterinha",
+      "Isento"
+    ]
+  }
 
   useEffect(() => {
     if (member?.role === 'admin' || member?.role === 'president') {
@@ -418,9 +427,9 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Situação</label>
-                    <select name="category" value={newMember.category} onChange={handleNewMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none">
+                    <select name="category" value={newMember.category} onChange={handleNewMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none disabled:bg-gray-100" disabled={!newMember.workplace}>
                       <option value="">Escolha</option>
-                      {SITUACAO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      {getSituacaoOptions(newMember.workplace).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                   </div>
                   <Input label="Endereço" name="address" value={newMember.address} onChange={handleNewMemberChange} required />
@@ -614,7 +623,7 @@ export default function AdminDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Situação</label>
                     <select name="category" value={editingMember.category || ''} onChange={handleEditMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none">
                       <option value="">Escolha</option>
-                      {SITUACAO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      {getSituacaoOptions(editingMember.workplace).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                   </div>
                 </div>
