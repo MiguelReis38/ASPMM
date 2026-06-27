@@ -598,6 +598,10 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {activeTab === 'acessos' && (
+         <AccessControl />
+      )}
+
       {/* Edit Modal */}
       {editingMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
