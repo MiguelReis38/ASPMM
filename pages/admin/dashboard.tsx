@@ -28,6 +28,9 @@ export default function AdminDashboard() {
   // Search
   const [searchTerm, setSearchTerm] = useState('')
 
+  // Finance State
+  const [feeMonth, setFeeMonth] = useState(new Date().getMonth().toString())
+
   // Announcements State
   const [announcementTitle, setAnnouncementTitle] = useState('')
   const [announcementContent, setAnnouncementContent] = useState('')
@@ -118,12 +121,14 @@ export default function AdminDashboard() {
     if (!window.confirm('Confirmar o recebimento manual desta mensalidade?')) return;
     setLoading(true)
     try {
-      const { error } = await supabase.from('payments').update({
-        status: 'paid',
-        paid_at: new Date().toISOString()
-      }).eq('id', paymentId)
+      const response = await fetch('/api/admin/mark-payment-paid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId })
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Erro ao dar baixa')
       
-      if (error) throw error
       alert('Baixa efetuada com sucesso!')
       fetchPayments()
     } catch (err: any) {
@@ -503,13 +508,29 @@ export default function AdminDashboard() {
                 <h3 className="font-semibold text-lg">Geração Automática</h3>
               </CardHeader>
               <CardBody>
-                <p className="text-sm text-gray-500 mb-6">Gera a mensalidade de R$ 50,00 para associados com Categoria Amarela ou Verde no sistema. Os demais são isentos de cobrança online.</p>
+                <p className="text-sm text-gray-500 mb-4">Gera a mensalidade de R$ 50,00 para associados com Categoria Amarela ou Verde no sistema. Os demais são isentos de cobrança online.</p>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mês de Referência</label>
+                  <select 
+                    value={feeMonth} 
+                    onChange={(e) => setFeeMonth(e.target.value)} 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none"
+                  >
+                    {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map((m, i) => (
+                      <option key={i} value={i}>{m}</option>
+                    ))}
+                  </select>
+                </div>
                 <Button 
                   className="w-full bg-brand-blue hover:bg-brand-blueDark text-white" 
                   onClick={async () => {
                     setLoading(true)
                     try {
-                      const res = await fetch('/api/admin/generate-monthly-fees', { method: 'POST' })
+                      const res = await fetch('/api/admin/generate-monthly-fees', { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ month: feeMonth })
+                      })
                       const data = await res.json()
                       alert(data.message || data.error)
                       fetchPayments()

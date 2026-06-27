@@ -22,6 +22,8 @@ function getTenthBusinessDay(year: number, month: number): Date {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
+  const { month } = req.body;
+
   try {
     const supabaseAdmin = getServiceSupabase()
     
@@ -39,10 +41,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const today = new Date()
     const currentYear = today.getFullYear()
-    const currentMonth = today.getMonth()
+    const targetMonth = month !== undefined ? parseInt(month) : today.getMonth()
     
-    // Calcula 10º dia útil do mês atual
-    const dueDate = getTenthBusinessDay(currentYear, currentMonth).toISOString().split('T')[0] // YYYY-MM-DD
+    // Calcula 10º dia útil do mês selecionado
+    const dueDate = getTenthBusinessDay(currentYear, targetMonth).toISOString().split('T')[0] // YYYY-MM-DD
 
     // For each member, check if payment already exists for this due date to avoid duplicates
     let generated = 0
