@@ -188,6 +188,11 @@ export const AccessControl = () => {
                   <div className="mb-4">
                     <p className="text-lg font-semibold text-gray-800">{scanResult.member.full_name}</p>
                     <p className="text-gray-500">Sócio: {scanResult.member.member_code}</p>
+                    <div className="mt-3 text-left bg-white p-3 rounded border border-gray-100 shadow-sm text-sm text-gray-600 space-y-1">
+                       <p><strong>CPF:</strong> {scanResult.member.cpf || 'Não informado'}</p>
+                       <p><strong>Telefone:</strong> {scanResult.member.phone || 'Não informado'}</p>
+                       <p><strong>Órgão:</strong> {scanResult.member.workplace || 'Não informado'}</p>
+                    </div>
                   </div>
                 )}
                 <p className="text-gray-600 mb-6 bg-gray-100 py-2 px-4 rounded-lg inline-block">{scanResult.message}</p>

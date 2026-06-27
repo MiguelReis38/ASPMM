@@ -139,9 +139,17 @@ export default function Validador() {
                   <h2 className="text-2xl font-bold text-gray-800 mb-1">{scanResult.member.full_name}</h2>
                   <p className="text-gray-500 font-mono mb-4 text-sm">Código: {scanResult.member.member_code}</p>
                   
-                  <span className="inline-block px-3 py-1 bg-brand-blueLight text-brand-blueDark rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+                  <span className="inline-block px-3 py-1 bg-brand-blueLight text-brand-blueDark rounded-full text-xs font-bold uppercase tracking-wider mb-4">
                     {scanResult.member.category || 'Titular'}
                   </span>
+
+                  <div className="text-left w-full bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 space-y-2">
+                    <p className="text-sm text-gray-600"><strong>CPF:</strong> {scanResult.member.cpf || 'Não informado'}</p>
+                    <p className="text-sm text-gray-600"><strong>Data de Nasc.:</strong> {scanResult.member.birth_date ? new Date(scanResult.member.birth_date).toLocaleDateString('pt-BR') : 'Não informada'}</p>
+                    <p className="text-sm text-gray-600"><strong>Telefone:</strong> {scanResult.member.phone || 'Não informado'}</p>
+                    <p className="text-sm text-gray-600"><strong>Órgão:</strong> {scanResult.member.workplace || 'Não informado'}</p>
+                  </div>
+                  
                   
                   {!scanResult.allowed && scanResult.reason === 'DEBT' && (
                     <div className="w-full bg-white p-4 rounded-xl border border-red-200 shadow-sm text-left">
