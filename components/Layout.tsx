@@ -54,8 +54,24 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
           <button 
+            onClick={() => {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister()
+                  }
+                })
+              }
+              window.location.reload();
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <Settings size={16} /> Atualizar App
+          </button>
+          
+          <button 
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-brand-redLight hover:text-white hover:bg-brand-red rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 text-sm text-brand-redLight hover:text-white hover:bg-brand-red rounded-lg transition-colors"
           >
             <LogOut size={16} /> Sair
           </button>
