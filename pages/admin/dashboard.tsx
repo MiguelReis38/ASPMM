@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import { Layout } from '../../components/Layout'
 import { useAuth } from '../../lib/AuthContext'
 import { supabase } from '../../lib/supabase'
