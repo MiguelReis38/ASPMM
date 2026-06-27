@@ -301,12 +301,7 @@ export default function AdminDashboard() {
         <title>Admin | ASPMM</title>
       </Head>
 
-      <div className="mb-6 flex justify-between items-end">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Painel Administrativo</h2>
-          <p className="text-gray-500">Gestão do clube e associados.</p>
-        </div>
-      </div>
+      <div className="mb-2"></div>
 
 
 
