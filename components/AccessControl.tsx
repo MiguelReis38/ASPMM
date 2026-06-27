@@ -17,10 +17,10 @@ export const AccessControl = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const fetchLogs = async () => {
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    // Fix timezone issue when parsing date string
+    const [year, month, day] = selectedDate.split('-');
+    const startOfDay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
+    const endOfDay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59, 999);
 
     const { data, error } = await supabase
       .from('access_logs')
@@ -127,7 +127,7 @@ export const AccessControl = () => {
       });
 
       setScanResult({
-        status: isGranted ? 'success' : 'message',
+        status: isGranted ? 'success' : 'error',
         message: reason,
         member: member
       });
