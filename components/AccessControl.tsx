@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '../lib/supabase';
 import { Card, CardHeader, CardBody } from './ui/Card';
 import { Button } from './ui/Button';
@@ -12,7 +12,7 @@ export const AccessControl = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [scannerActive, setScannerActive] = useState(false);
   const [scanResult, setScanResult] = useState<{ status: string, message: string, member?: any } | null>(null);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
@@ -43,22 +43,26 @@ export const AccessControl = () => {
     setScanResult(null);
     
     setTimeout(() => {
-      scannerRef.current = new Html5QrcodeScanner(
-        "reader",
+      scannerRef.current = new Html5Qrcode("reader");
+      scannerRef.current.start(
+        { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false
-      );
-      
-      scannerRef.current.render(onScanSuccess, onScanFailure);
+        onScanSuccess,
+        onScanFailure
+      ).catch(error => {
+        console.error("Failed to start scanner. ", error);
+      });
     }, 100);
   };
 
   const stopScanner = () => {
     if (scannerRef.current) {
-      scannerRef.current.clear().catch(error => {
-        console.error("Failed to clear html5QrcodeScanner. ", error);
+      scannerRef.current.stop().then(() => {
+        scannerRef.current?.clear();
+        scannerRef.current = null;
+      }).catch(error => {
+        console.error("Failed to stop scanner. ", error);
       });
-      scannerRef.current = null;
     }
     setScannerActive(false);
   };
@@ -111,9 +115,8 @@ export const AccessControl = () => {
         .eq('status', 'pending');
         
       if (payments && payments.length > 0) {
-        if (isGranted) {
-           reason = 'Acesso liberado (Atenção: Possui mensalidades pendentes)';
-        }
+        isGranted = false;
+        reason = 'Acesso Negado: Mensalidade Pendente.';
       }
 
       await supabase.from('access_logs').insert({
@@ -143,7 +146,7 @@ export const AccessControl = () => {
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(e => console.error(e));
+        scannerRef.current.stop().then(() => scannerRef.current?.clear()).catch(e => console.error(e));
       }
     };
   }, []);
