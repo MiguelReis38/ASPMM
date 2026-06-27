@@ -81,8 +81,8 @@ export default function Validador() {
     router.replace('/validador', undefined, { shallow: true })
   }
 
-  // Permissão apenas para Admins ou Portaria (no momento, Admins)
-  if (member?.role !== 'admin') {
+  // Permissão apenas para Admins ou Presidente
+  if (member?.role !== 'admin' && member?.role !== 'president') {
     return <Layout><div className="p-10 text-center text-red-500">Acesso Restrito à Administração/Portaria</div></Layout>
   }
 

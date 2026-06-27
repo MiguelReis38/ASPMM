@@ -9,12 +9,21 @@ import { Input } from '../../components/ui/Input'
 import Papa from 'papaparse'
 import { formatCurrency } from '../../utils'
 
+import { AccessControl } from '../../components/AccessControl'
+
 export default function AdminDashboard() {
   const { member } = useAuth()
   const [members, setMembers] = useState<any[]>([])
+  const router = useRouter()
   const [payments, setPayments] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'associados' | 'cadastros' | 'financeiro' | 'comunicacao'>('associados')
+  const [activeTab, setActiveTab] = useState<'associados' | 'cadastros' | 'financeiro' | 'comunicacao' | 'acessos'>('associados')
   
+  useEffect(() => {
+    if (router.query.tab) {
+      setActiveTab(router.query.tab as any)
+    }
+  }, [router.query.tab])
+
   // Search
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -273,12 +282,7 @@ export default function AdminDashboard() {
 
   if (member?.role !== 'admin' && member?.role !== 'president') return <Layout><div className="p-10 text-center">Acesso Negado</div></Layout>
 
-  const navTabs = [
-    { id: 'associados', label: 'Associados' },
-    { id: 'cadastros', label: 'Cadastros e Importação' },
-    ...(member?.role === 'president' ? [{ id: 'financeiro', label: 'Financeiro' }] : []),
-    { id: 'comunicacao', label: 'Comunicação' },
-  ];
+
 
   const filteredMembers = members.filter(m => 
     m.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -304,21 +308,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="flex overflow-x-auto border-b border-gray-200 mb-8 hide-scrollbar">
-        {navTabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`whitespace-nowrap py-3 px-6 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? 'border-brand-blue text-brand-blue'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+
 
       {activeTab === 'associados' && (
         <Card className="h-full animate-in fade-in slide-in-from-bottom-2 duration-300">

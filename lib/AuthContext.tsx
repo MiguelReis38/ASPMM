@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
+        setLoading(true)
         fetchMemberData(session.user.id)
       } else {
         setMember(null)

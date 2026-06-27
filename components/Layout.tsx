@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
-import { LogOut, User, LayoutDashboard, Settings } from 'lucide-react'
+import { LogOut, User, LayoutDashboard, Settings, Users, UserPlus, DollarSign, Megaphone, ScanLine } from 'lucide-react'
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { member, session } = useAuth()
@@ -30,8 +30,22 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {member?.role === 'admin' || member?.role === 'president' ? (
             <>
-              <Link href="/admin/dashboard" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.pathname === '/admin/dashboard' ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
-                <LayoutDashboard size={20} /> Painel Admin
+              <Link href="/admin/dashboard?tab=associados" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.asPath.includes('tab=associados') || router.asPath === '/admin/dashboard' ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                <Users size={20} /> Associados
+              </Link>
+              <Link href="/admin/dashboard?tab=cadastros" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.asPath.includes('tab=cadastros') ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                <UserPlus size={20} /> Cadastros
+              </Link>
+              {member?.role === 'president' && (
+                <Link href="/admin/dashboard?tab=financeiro" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.asPath.includes('tab=financeiro') ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                  <DollarSign size={20} /> Financeiro
+                </Link>
+              )}
+              <Link href="/admin/dashboard?tab=comunicacao" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.asPath.includes('tab=comunicacao') ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                <Megaphone size={20} /> Comunicação
+              </Link>
+              <Link href="/admin/dashboard?tab=acessos" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.asPath.includes('tab=acessos') ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                <ScanLine size={20} /> Controle de Acesso
               </Link>
             </>
           ) : (

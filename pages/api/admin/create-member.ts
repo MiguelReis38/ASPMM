@@ -43,9 +43,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error('Para cadastrar um dependente, é obrigatório informar o Código do Titular.')
     }
 
-    // 3. Generate Member Code and Card Number
-    const memberCode = Math.floor(100000 + Math.random() * 900000).toString()
-    const generatedCardNumber = Math.floor(100000 + Math.random() * 900000).toString()
+    // 3. Generate Unique Member Code and Card Number
+    let memberCode = ''
+    let isUnique = false
+    while (!isUnique) {
+      memberCode = Math.floor(100000 + Math.random() * 900000).toString()
+      const { data: existingCode } = await supabaseAdmin
+        .from('members')
+        .select('id')
+        .eq('member_code', memberCode)
+        .single()
+      if (!existingCode) isUnique = true
+    }
+    const generatedCardNumber = memberCode // Use the same for card number or generate another unique one. The user said "campo do numero da carteirinha", which might refer to card_number. We'll just make both the same for simplicity and uniqueness.
 
     // 4. Insert into members table
     const { data: memberData, error: memberError } = await supabaseAdmin
