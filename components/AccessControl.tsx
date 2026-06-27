@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Card, CardHeader, CardBody } from './ui/Card';
 import { Button } from './ui/Button';
 import { useAuth } from '../lib/AuthContext';
-import { Camera, CheckCircle2, XCircle } from 'lucide-react';
+import { Camera, CheckCircle2, XCircle, QrCode, X, ScanLine, UserCheck } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const AccessControl = () => {
@@ -151,53 +151,86 @@ export const AccessControl = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <h3 className="font-semibold text-lg flex items-center gap-2"><Camera size={20}/> Validar Acesso</h3>
-          </CardHeader>
-          <CardBody>
+        <Card className="border-0 shadow-premium overflow-hidden">
+          <div className="bg-gradient-to-r from-brand-blue to-brand-blueLight p-4 flex items-center gap-3 text-white">
+            <ScanLine className="w-6 h-6 opacity-80" />
+            <h3 className="font-semibold text-lg">Validar Acesso</h3>
+          </div>
+          <CardBody className="p-6 bg-gray-50/50">
             {!scannerActive && !scanResult && (
-              <div className="text-center py-10">
-                <p className="text-gray-500 mb-4">Utilize a câmera para ler o QR Code da carteirinha.</p>
-                <Button onClick={startScanner} className="w-full max-w-xs mx-auto">Iniciar Leitor</Button>
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="w-20 h-20 bg-blue-50 text-brand-blue rounded-full flex items-center justify-center mb-6 shadow-inner">
+                  <QrCode size={40} strokeWidth={1.5} />
+                </div>
+                <h4 className="text-xl font-bold text-gray-800 mb-2">Leitor de Carteirinha</h4>
+                <p className="text-gray-500 mb-8 max-w-xs">Aponte a câmera para o QR Code da carteirinha digital do associado para validar a entrada no clube.</p>
+                <Button 
+                  onClick={startScanner} 
+                  className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 py-3 text-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                >
+                  <Camera size={22} /> Iniciar Leitor
+                </Button>
               </div>
             )}
 
             {scannerActive && (
-              <div>
-                <div id="reader" className="w-full max-w-sm mx-auto overflow-hidden rounded-lg border-2 border-brand-blue/20"></div>
-                <div className="mt-4 text-center">
-                   <Button variant="outline" onClick={stopScanner}>Cancelar</Button>
+              <div className="animate-in zoom-in-95 duration-300 flex flex-col items-center">
+                <div className="relative w-full max-w-sm mx-auto overflow-hidden rounded-2xl border-4 border-brand-blue shadow-xl bg-black">
+                  <div id="reader" className="w-full"></div>
+                  {/* Subtle scanning animation line */}
+                  <div className="absolute left-0 right-0 h-0.5 bg-brand-blue/50 shadow-[0_0_8px_2px_rgba(59,130,246,0.5)] top-1/2 animate-scan pointer-events-none"></div>
+                </div>
+                <div className="mt-6 text-center w-full max-w-sm">
+                   <Button variant="outline" onClick={stopScanner} className="w-full flex items-center justify-center gap-2 py-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-colors">
+                     <X size={20} /> Cancelar Leitura
+                   </Button>
                 </div>
               </div>
             )}
 
             {scanResult && (
-              <div className="text-center py-6 animate-in fade-in zoom-in duration-300">
+              <div className="text-center bg-white rounded-2xl border border-gray-100 shadow-lg p-6 animate-in fade-in zoom-in duration-300">
                 <div className="flex justify-center mb-4">
                   {scanResult.status === 'success' || scanResult.status === 'message' ? (
-                    <CheckCircle2 size={64} className="text-green-500" />
+                    <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center shadow-inner">
+                      <UserCheck size={48} className="text-green-500" />
+                    </div>
                   ) : (
-                    <XCircle size={64} className="text-red-500" />
+                    <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center shadow-inner">
+                      <XCircle size={48} className="text-red-500" />
+                    </div>
                   )}
                 </div>
-                <h4 className={`text-2xl font-bold mb-2 ${scanResult.status === 'success' || scanResult.status === 'message' ? 'text-green-600' : 'text-red-600'}`}>
-                   {scanResult.status === 'success' || scanResult.status === 'message' ? 'Acesso Permitido' : 'Acesso Negado'}
+                <h4 className={`text-2xl font-black tracking-tight mb-2 ${scanResult.status === 'success' || scanResult.status === 'message' ? 'text-green-600' : 'text-red-600'}`}>
+                   {scanResult.status === 'success' || scanResult.status === 'message' ? 'ACESSO PERMITIDO' : 'ACESSO NEGADO'}
                 </h4>
                 {scanResult.member && (
-                  <div className="mb-4">
-                    <p className="text-lg font-semibold text-gray-800">{scanResult.member.full_name}</p>
-                    <p className="text-gray-500">Sócio: {scanResult.member.member_code}</p>
-                    <div className="mt-3 text-left bg-white p-3 rounded border border-gray-100 shadow-sm text-sm text-gray-600 space-y-1">
-                       <p><strong>CPF:</strong> {scanResult.member.cpf || 'Não informado'}</p>
-                       <p><strong>Telefone:</strong> {scanResult.member.phone || 'Não informado'}</p>
-                       <p><strong>Órgão:</strong> {scanResult.member.workplace || 'Não informado'}</p>
+                  <div className="mb-6 mt-4">
+                    <p className="text-xl font-bold text-gray-800">{scanResult.member.full_name}</p>
+                    <p className="text-brand-blue font-semibold uppercase tracking-wider text-xs mt-1">Sócio: {scanResult.member.member_code}</p>
+                    <div className="mt-4 text-left bg-gray-50/80 p-4 rounded-xl border border-gray-100 shadow-inner text-sm text-gray-700 space-y-2">
+                       <div className="flex justify-between border-b border-gray-200/60 pb-2">
+                         <span className="text-gray-500">CPF</span>
+                         <span className="font-medium">{scanResult.member.cpf || 'Não informado'}</span>
+                       </div>
+                       <div className="flex justify-between border-b border-gray-200/60 pb-2">
+                         <span className="text-gray-500">Telefone</span>
+                         <span className="font-medium">{scanResult.member.phone || 'Não informado'}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="text-gray-500">Órgão</span>
+                         <span className="font-medium">{scanResult.member.workplace || 'Não informado'}</span>
+                       </div>
                     </div>
                   </div>
                 )}
-                <p className="text-gray-600 mb-6 bg-gray-100 py-2 px-4 rounded-lg inline-block">{scanResult.message}</p>
+                <div className={`mb-6 p-4 rounded-xl inline-block w-full border ${scanResult.status === 'success' ? 'bg-green-50 border-green-100 text-green-800' : scanResult.status === 'message' ? 'bg-orange-50 border-orange-100 text-orange-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
+                  <p className="font-medium">{scanResult.message}</p>
+                </div>
                 <div>
-                  <Button onClick={startScanner}>Ler Novo QR Code</Button>
+                  <Button onClick={startScanner} className="w-full py-3 flex items-center justify-center gap-2 text-lg shadow-md">
+                    <ScanLine size={20} /> Nova Leitura
+                  </Button>
                 </div>
               </div>
             )}
