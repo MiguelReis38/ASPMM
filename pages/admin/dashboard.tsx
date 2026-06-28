@@ -55,15 +55,15 @@ export default function AdminDashboard() {
   const ORGAO_OPTIONS = ["ASPMM", "CAMARA", "CODEMAR", "DAEM", "IPREM", "PREFEITURA"]
 
   const getSituacaoOptions = (workplace: string) => {
-    if (workplace === 'ASPMM') {
-      return ["Verde Carterinha", "Amarela Carterinha", "PCD"]
-    }
     return [
       "Titular", 
       "Dependente", 
       "Dep. Não Pagante Menor", 
       "Dep. Não Pagante Maior", 
       "Branca Carterinha",
+      "Verde Carterinha",
+      "Amarela Carterinha",
+      "PCD",
       "Isento"
     ]
   }
@@ -595,10 +595,11 @@ export default function AdminDashboard() {
                     <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className="w-full text-sm border p-1 rounded bg-gray-50" />
                   </div>
                 </div>
-
-                <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva (Se for dependente)" />
+                {newMember.category?.toLowerCase().includes('dependente') && (
+                  <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva ou 123456" />
+                )}
                 <Input label="Matrícula" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Matrícula Interna" />
-                <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} required />
+                <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} />
                 <Input label="Data de Cadastro" type="date" name="createdAt" value={newMember.createdAt} onChange={handleNewMemberChange} />
 
                 <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white" isLoading={loading}>+ Salvar Associado</Button>
@@ -834,7 +835,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input label="CPF" name="cpf" value={editingMember.cpf || ''} onChange={handleEditMemberChange} required />
+                  <Input label="CPF" name="cpf" value={editingMember.cpf || ''} onChange={handleEditMemberChange} />
                   <Input label="Matrícula" name="matricula" value={editingMember.matricula || ''} onChange={handleEditMemberChange} />
                 </div>
 

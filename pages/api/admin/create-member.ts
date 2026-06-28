@@ -6,6 +6,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { fullName, cpf, email, workplace, birthDate, category, address, phone, validityDate, primaryMemberCode, photoUrl, matricula, createdAt } = req.body
 
+  if (!fullName || !workplace || !birthDate) {
+    return res.status(400).json({ error: 'Preencha todos os campos obrigatórios.' })
+  }
+
+  const finalCpf = cpf ? cpf.trim() : Math.floor(10000000000 + Math.random() * 90000000000).toString();
+
   try {
     const supabaseAdmin = getServiceSupabase()
 
@@ -64,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user_id: userId,
         member_code: memberCode,
         full_name: fullName,
-        cpf: cpf,
+        cpf: finalCpf,
         workplace: workplace || 'Não informado',
         birth_date: birthDate || null,
         category: category || 'Titular',
