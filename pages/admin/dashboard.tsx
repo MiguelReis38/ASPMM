@@ -28,6 +28,7 @@ export default function AdminDashboard() {
   // Search & Selection
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
+  const [expandedMembers, setExpandedMembers] = useState<string[]>([])
 
   // Finance State
   const [feeMonth, setFeeMonth] = useState(new Date().getMonth().toString())
@@ -289,6 +290,10 @@ export default function AdminDashboard() {
     }
   }
 
+  const toggleExpandMember = (id: string) => {
+    setExpandedMembers(prev => prev.includes(id) ? prev.filter(mId => mId !== id) : [...prev, id])
+  }
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -300,7 +305,11 @@ export default function AdminDashboard() {
         setLoading(true)
         const data = results.data as any[]
         
-        for (const row of data) {
+        const titulares = data.filter(r => !(r.Situacao || '').toLowerCase().includes('dependente'))
+        const dependentes = data.filter(r => (r.Situacao || '').toLowerCase().includes('dependente'))
+
+        // Pass 1: Import Titulares
+        for (const row of titulares) {
           try {
              const payload = {
                 member_code: Math.floor(100000 + Math.random() * 900000).toString(),
@@ -308,7 +317,7 @@ export default function AdminDashboard() {
                 cpf: row.CPF,
                 status: 'active',
                 category: row.Situacao || 'Titular',
-                is_dependent: (row.Situacao || '').toLowerCase().includes('dependente'),
+                is_dependent: false,
                 workplace: row.Orgao || 'Não informado',
                 birth_date: row.DataNascimento || '1990-01-01',
                 address: row.Endereco || '',
@@ -320,7 +329,43 @@ export default function AdminDashboard() {
              }
              await supabase.from('members').insert(payload)
           } catch (err) {
-            console.error("Erro ao importar linha", row, err)
+            console.error("Erro ao importar titular", row, err)
+          }
+        }
+
+        // Pass 2: Import Dependentes and link them
+        for (const row of dependentes) {
+          try {
+             let primaryId = null;
+             const titularRef = row.Titular; // Column 'Titular' can be Name or Code
+             if (titularRef) {
+               const { data: tData } = await supabase.from('members')
+                 .select('id')
+                 .or(`member_code.eq.${titularRef},full_name.ilike.${titularRef}`)
+                 .single()
+               if (tData) primaryId = tData.id;
+             }
+
+             const payload = {
+                member_code: Math.floor(100000 + Math.random() * 900000).toString(),
+                full_name: row.Nome,
+                cpf: row.CPF,
+                status: 'active',
+                category: row.Situacao || 'Dependente',
+                is_dependent: true,
+                primary_member_id: primaryId,
+                workplace: row.Orgao || 'Não informado',
+                birth_date: row.DataNascimento || '1990-01-01',
+                address: row.Endereco || '',
+                phone: row.Telefone || '',
+                validity_date: row.DataValidade || null,
+                card_number: row.Carterinha || '',
+                matricula: row.Matricula || null,
+                role: 'member'
+             }
+             await supabase.from('members').insert(payload)
+          } catch (err) {
+            console.error("Erro ao importar dependente", row, err)
           }
         }
         
@@ -449,7 +494,13 @@ export default function AdminDashboard() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-bold text-gray-700">{deps.length} dependentes</span>
+                            {deps.length > 0 ? (
+                              <button onClick={() => toggleExpandMember(m.id)} className="font-bold text-brand-blue hover:underline flex items-center gap-1">
+                                {deps.length} dependentes {expandedMembers.includes(m.id) ? '▲' : '▼'}
+                              </button>
+                            ) : (
+                              <span className="font-bold text-gray-400">0 dependentes</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-right flex justify-end gap-2">
                             <Button variant="outline" className="text-xs py-1 px-3" onClick={() => setEditingMember(m)}>Editar</Button>
@@ -457,7 +508,7 @@ export default function AdminDashboard() {
                           </td>
                         </tr>
                         {/* Render Dependents beneath */}
-                        {deps.length > 0 && (
+                        {deps.length > 0 && expandedMembers.includes(m.id) && (
                           <tr className="border-b bg-gray-50/50">
                             <td colSpan={8} className="px-12 py-3">
                               <div className="space-y-2 border-l-2 border-brand-blue/30 pl-4">
@@ -541,7 +592,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <Input label="Titular (Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: 849302 (Se for dependente)" />
+                <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva (Se for dependente)" />
                 <Input label="Matrícula" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Matrícula Interna" />
                 <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} required />
 
