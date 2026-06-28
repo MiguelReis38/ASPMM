@@ -8,7 +8,7 @@ import { Input } from '../components/ui/Input'
 import Link from 'next/link'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -35,16 +35,37 @@ export default function Login() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      let finalEmail = identifier.trim();
 
-    if (error) {
-      setError(error.message)
+      // If it's not an email (e.g. member code), resolve it using the smart login API
+      if (!finalEmail.includes('@')) {
+        const res = await fetch('/api/auth/member-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: finalEmail, password })
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.error || 'Erro ao validar código.')
+        }
+        finalEmail = data.email
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: finalEmail,
+        password,
+      })
+
+      if (signInError) {
+        throw signInError
+      }
+      
+      // If successful, the AuthContext will catch the session change and redirect
+    } catch (err: any) {
+      setError(err.message)
       setLoading(false)
     }
-    // If successful, the AuthContext will catch the session change and redirect
   }
 
   if (authLoading) {
@@ -71,12 +92,12 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <Input
-            label="E-mail"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            label="Código do Associado ou E-mail"
+            type="text"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             required
-            placeholder="seu@email.com"
+            placeholder="Ex: 123456 ou seu@email.com"
           />
           <Input
             label="Senha"
