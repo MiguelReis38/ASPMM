@@ -25,8 +25,9 @@ export default function AdminDashboard() {
     }
   }, [router.query.tab])
 
-  // Search
+  // Search & Selection
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
 
   // Finance State
   const [feeMonth, setFeeMonth] = useState(new Date().getMonth().toString())
@@ -255,6 +256,39 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleDeleteSelected = async () => {
+    if (!window.confirm(`Tem certeza que deseja EXCLUIR os ${selectedMembers.length} associados selecionados? Esta ação não pode ser desfeita.`)) return;
+    
+    setLoading(true)
+    try {
+      await Promise.all(selectedMembers.map(id => fetch('/api/admin/delete-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })))
+      
+      alert('Sócios excluídos com sucesso!')
+      setSelectedMembers([])
+      fetchMembers()
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleSelectMember = (id: string) => {
+    setSelectedMembers(prev => prev.includes(id) ? prev.filter(mId => mId !== id) : [...prev, id])
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedMembers.length === titularMembers.length) {
+      setSelectedMembers([])
+    } else {
+      setSelectedMembers(titularMembers.map(m => m.id))
+    }
+  }
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -336,19 +370,39 @@ export default function AdminDashboard() {
         <Card className="h-full animate-in fade-in slide-in-from-bottom-2 duration-300">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 className="font-semibold text-lg">Lista Geral de Associados</h3>
-            <input 
-              type="text" 
-              placeholder="Buscar por Nome ou Código..." 
-              className="w-full sm:w-64 px-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-blue"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <input 
+                type="text" 
+                placeholder="Pesquisar associado..." 
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-blue w-full sm:w-64"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {selectedMembers.length > 0 && (
+                <Button 
+                  variant="danger" 
+                  className="bg-red-500 hover:bg-red-600 text-white w-full sm:w-auto px-4 py-2 text-sm font-semibold"
+                  onClick={handleDeleteSelected}
+                  isLoading={loading}
+                >
+                  Excluir Selecionados ({selectedMembers.length})
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardBody className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
                   <tr className="bg-gray-50 text-gray-600 border-b">
+                    <th className="px-6 py-3 font-medium w-12 text-center">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-brand-blue border-gray-300 rounded focus:ring-brand-blue"
+                        checked={titularMembers.length > 0 && selectedMembers.length === titularMembers.length}
+                        onChange={toggleSelectAll}
+                      />
+                    </th>
                     <th className="px-6 py-3 font-medium w-12">Foto</th>
                     <th className="px-6 py-3 font-medium">Sócio (Titular)</th>
                     <th className="px-6 py-3 font-medium">Matrícula</th>
@@ -364,6 +418,14 @@ export default function AdminDashboard() {
                     return (
                       <React.Fragment key={m.id}>
                         <tr className="border-b last:border-0 hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 text-center">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 text-brand-blue border-gray-300 rounded focus:ring-brand-blue"
+                              checked={selectedMembers.includes(m.id)}
+                              onChange={() => toggleSelectMember(m.id)}
+                            />
+                          </td>
                           <td className="px-6 py-4">
                             {m.photo_url ? (
                               <img src={m.photo_url} alt="Foto" className="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-200" />
@@ -397,7 +459,7 @@ export default function AdminDashboard() {
                         {/* Render Dependents beneath */}
                         {deps.length > 0 && (
                           <tr className="border-b bg-gray-50/50">
-                            <td colSpan={7} className="px-12 py-3">
+                            <td colSpan={8} className="px-12 py-3">
                               <div className="space-y-2 border-l-2 border-brand-blue/30 pl-4">
                                 {deps.map(d => (
                                   <div key={d.id} className="flex justify-between items-center text-xs">
