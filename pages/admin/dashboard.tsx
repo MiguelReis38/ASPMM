@@ -325,6 +325,7 @@ export default function AdminDashboard() {
                 validity_date: row.DataValidade || null,
                 card_number: row.Carterinha || '',
                 matricula: row.Matricula || null,
+                created_at: row.DataCriacao || undefined,
                 role: 'member'
              }
              await supabase.from('members').insert(payload)
@@ -361,6 +362,7 @@ export default function AdminDashboard() {
                 validity_date: row.DataValidade || null,
                 card_number: row.Carterinha || '',
                 matricula: row.Matricula || null,
+                created_at: row.DataCriacao || undefined,
                 role: 'member'
              }
              await supabase.from('members').insert(payload)
