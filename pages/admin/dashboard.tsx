@@ -30,6 +30,7 @@ export default function AdminDashboard() {
 
   // Finance State
   const [feeMonth, setFeeMonth] = useState(new Date().getMonth().toString())
+  const [paymentSearchTerm, setPaymentSearchTerm] = useState('')
 
   // Announcements State
   const [announcementTitle, setAnnouncementTitle] = useState('')
@@ -548,8 +549,15 @@ export default function AdminDashboard() {
             </Card>
 
             <Card className="lg:col-span-2">
-              <CardHeader>
+              <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h3 className="font-semibold text-lg">Histórico de Cobranças</h3>
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar Sócio ou Código..." 
+                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-blue w-full sm:w-64"
+                  value={paymentSearchTerm}
+                  onChange={(e) => setPaymentSearchTerm(e.target.value)}
+                />
               </CardHeader>
               <CardBody className="p-0">
                 <div className="max-h-[400px] overflow-y-auto">
@@ -564,7 +572,11 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {payments.map(p => (
+                      {payments.filter(p => {
+                        if (!paymentSearchTerm) return true;
+                        const term = paymentSearchTerm.toLowerCase();
+                        return p.members?.full_name?.toLowerCase().includes(term) || p.members?.member_code?.toLowerCase().includes(term);
+                      }).map(p => (
                         <tr key={p.id} className="border-b last:border-0 hover:bg-gray-50">
                           <td className="px-6 py-3 font-medium text-gray-800">
                             {p.members?.full_name} <br/>
@@ -584,7 +596,11 @@ export default function AdminDashboard() {
                           </td>
                         </tr>
                       ))}
-                      {payments.length === 0 && (
+                      {payments.filter(p => {
+                        if (!paymentSearchTerm) return true;
+                        const term = paymentSearchTerm.toLowerCase();
+                        return p.members?.full_name?.toLowerCase().includes(term) || p.members?.member_code?.toLowerCase().includes(term);
+                      }).length === 0 && (
                         <tr>
                           <td colSpan={5} className="px-6 py-6 text-center text-gray-500">Nenhuma cobrança registrada.</td>
                         </tr>
@@ -665,8 +681,7 @@ export default function AdminDashboard() {
                   <Input label="Data de Validade" type="date" name="validity_date" value={editingMember.validity_date || ''} onChange={handleEditMemberChange} />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <Input label="Carterinha" name="card_number" value={editingMember.card_number || ''} onChange={handleEditMemberChange} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Telefone" name="phone" value={editingMember.phone || ''} onChange={handleEditMemberChange} />
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Substituir Foto</label>
