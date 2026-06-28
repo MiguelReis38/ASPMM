@@ -331,8 +331,9 @@ export default function AdminDashboard() {
                 role: 'member'
              }
              await supabase.from('members').insert(payload)
-          } catch (err) {
+          } catch (err: any) {
             console.error("Erro ao importar titular", row, err)
+            alert(err.message)
           }
         }
 
@@ -368,8 +369,9 @@ export default function AdminDashboard() {
                 role: 'member'
              }
              await supabase.from('members').insert(payload)
-          } catch (err) {
+          } catch (err: any) {
             console.error("Erro ao importar dependente", row, err)
+            alert(err.message)
           }
         }
         
