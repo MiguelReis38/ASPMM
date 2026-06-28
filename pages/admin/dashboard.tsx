@@ -81,7 +81,7 @@ export default function AdminDashboard() {
   }
 
   const fetchPayments = async () => {
-    const { data } = await supabase.from('payments').select('*, members(full_name, member_code)').order('created_at', { ascending: false })
+    const { data } = await supabase.from('payments').select('*, members(full_name, member_code, category)').order('created_at', { ascending: false })
     if (data) setPayments(data)
   }
 
@@ -308,8 +308,17 @@ export default function AdminDashboard() {
   const titularMembers = filteredMembers.filter(m => !m.is_dependent && !m.category?.toLowerCase().includes('dependente'))
 
   // Finance calculations
-  const totalArrecadado = payments.filter(p => p.status === 'paid').reduce((acc, curr) => acc + Number(curr.amount), 0)
-  const totalReceber = payments.filter(p => p.status === 'pending').reduce((acc, curr) => acc + Number(curr.amount), 0)
+  const currentYear = new Date().getFullYear();
+  const currentMonthPayments = payments.filter(p => {
+    if (!p.due_date) return false;
+    const d = new Date(p.due_date);
+    const category = p.members?.category;
+    const isVerdeOuAmarela = category === 'Verde Carterinha' || category === 'Amarela Carterinha';
+    return d.getMonth().toString() === feeMonth && d.getFullYear() === currentYear && isVerdeOuAmarela;
+  });
+
+  const totalArrecadado = currentMonthPayments.filter(p => p.status === 'paid').reduce((acc, curr) => acc + Number(curr.amount), 0)
+  const totalReceber = currentMonthPayments.filter(p => p.status === 'pending').reduce((acc, curr) => acc + Number(curr.amount), 0)
 
   return (
     <Layout>
@@ -492,6 +501,25 @@ export default function AdminDashboard() {
       {activeTab === 'financeiro' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm gap-4">
+            <div>
+              <h3 className="font-semibold text-lg text-gray-800">Resumo Financeiro</h3>
+              <p className="text-sm text-gray-500">Valores referentes a Carteirinhas Verde e Amarela do mês selecionado.</p>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Mês de Referência:</label>
+              <select 
+                value={feeMonth} 
+                onChange={(e) => setFeeMonth(e.target.value)} 
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-brand-blue outline-none font-medium w-full sm:w-auto"
+              >
+                {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map((m, i) => (
+                  <option key={i} value={i}>{m}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col justify-center">
               <p className="text-sm text-gray-500 uppercase font-bold tracking-wider mb-2">Total Arrecadado</p>
@@ -509,19 +537,7 @@ export default function AdminDashboard() {
                 <h3 className="font-semibold text-lg">Geração Automática</h3>
               </CardHeader>
               <CardBody>
-                <p className="text-sm text-gray-500 mb-4">Gera a mensalidade de R$ 50,00 para associados com Categoria Amarela ou Verde no sistema. Os demais são isentos de cobrança online.</p>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mês de Referência</label>
-                  <select 
-                    value={feeMonth} 
-                    onChange={(e) => setFeeMonth(e.target.value)} 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none"
-                  >
-                    {['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'].map((m, i) => (
-                      <option key={i} value={i}>{m}</option>
-                    ))}
-                  </select>
-                </div>
+                <p className="text-sm text-gray-500 mb-6">Gera a mensalidade de R$ 50,00 para associados com Categoria Amarela ou Verde referente ao mês selecionado acima. Os demais são isentos de cobrança online.</p>
                 <Button 
                   className="w-full bg-brand-blue hover:bg-brand-blueDark text-white" 
                   onClick={async () => {
