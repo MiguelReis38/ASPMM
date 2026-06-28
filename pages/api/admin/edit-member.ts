@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const supabaseAdmin = getServiceSupabase()
 
     let primaryMemberId = null;
-    const isDependentCategory = (category || '').toLowerCase().includes('dependente');
+    const isDependentCategory = (category || '').toLowerCase().includes('dep');
     if (isDependentCategory && primaryMemberCode) {
       const { data: primaryData, error: primaryError } = await supabaseAdmin
         .from('members')
@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .single()
       
       if (primaryError || !primaryData) {
-        throw new Error('Código do Sócio Titular inválido ou não encontrado.')
+        throw new Error('Titular não encontrado. Verifique o código ou o nome.')
       }
       primaryMemberId = primaryData.id
     } else if (isDependentCategory && !primaryMemberCode) {

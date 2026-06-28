@@ -597,7 +597,7 @@ export default function AdminDashboard() {
                     <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className="w-full text-sm border p-1 rounded bg-gray-50" />
                   </div>
                 </div>
-                {newMember.category?.toLowerCase().includes('dependente') && (
+                {newMember.category?.toLowerCase().includes('dep') && (
                   <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva ou 123456" />
                 )}
                 <Input label="Matrícula" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Matrícula Interna" />
