@@ -40,7 +40,7 @@ export default function AdminDashboard() {
   // New Member Form State
   const [newMember, setNewMember] = useState({
     fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', 
-    category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: ''
+    category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: ''
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error(result.error || 'Erro ao criar sócio')
       
       alert(`Sócio cadastrado com sucesso! Código gerado: ${result.member.member_code}`)
-      setNewMember({ fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '' })
+      setNewMember({ fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: '' })
       setPhotoFile(null)
       fetchMembers()
     } catch (err: any) {
@@ -209,7 +209,8 @@ export default function AdminDashboard() {
         phone: editingMember.phone,
         validityDate: editingMember.validity_date,
         cardNumber: editingMember.card_number,
-        primaryMemberCode: editingMember.primaryMemberCode || '', // Only used if dependent
+        primaryMemberCode: editingMember.primaryMemberCode || '',
+        matricula: editingMember.matricula,
         photoUrl: photoUrl
       }
 
@@ -280,6 +281,7 @@ export default function AdminDashboard() {
                 phone: row.Telefone || '',
                 validity_date: row.DataValidade || null,
                 card_number: row.Carterinha || '',
+                matricula: row.Matricula || null,
                 role: 'member'
              }
              await supabase.from('members').insert(payload)
@@ -349,6 +351,7 @@ export default function AdminDashboard() {
                   <tr className="bg-gray-50 text-gray-600 border-b">
                     <th className="px-6 py-3 font-medium w-12">Foto</th>
                     <th className="px-6 py-3 font-medium">Sócio (Titular)</th>
+                    <th className="px-6 py-3 font-medium">Matrícula</th>
                     <th className="px-6 py-3 font-medium">Código</th>
                     <th className="px-6 py-3 font-medium">Situação / Categoria</th>
                     <th className="px-6 py-3 font-medium">Dependentes</th>
@@ -372,6 +375,9 @@ export default function AdminDashboard() {
                             <p className="font-medium text-gray-800">{m.full_name}</p>
                             <p className="text-xs text-gray-500">CPF: {m.cpf}</p>
                           </td>
+                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">
+                            {m.matricula || '-'}
+                          </td>
                           <td className="px-6 py-4">
                             <span className="font-mono bg-gray-100 px-2 py-1 rounded text-gray-700 font-bold">{m.member_code}</span>
                           </td>
@@ -391,7 +397,7 @@ export default function AdminDashboard() {
                         {/* Render Dependents beneath */}
                         {deps.length > 0 && (
                           <tr className="border-b bg-gray-50/50">
-                            <td colSpan={6} className="px-12 py-3">
+                            <td colSpan={7} className="px-12 py-3">
                               <div className="space-y-2 border-l-2 border-brand-blue/30 pl-4">
                                 {deps.map(d => (
                                   <div key={d.id} className="flex justify-between items-center text-xs">
@@ -474,6 +480,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <Input label="Titular (Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: 849302 (Se for dependente)" />
+                <Input label="Matrícula" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Matrícula Interna" />
                 <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} required />
 
                 <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white" isLoading={loading}>+ Salvar Associado</Button>
@@ -583,7 +590,9 @@ export default function AdminDashboard() {
                         <th className="px-6 py-3 font-medium">Sócio</th>
                         <th className="px-6 py-3 font-medium">Vencimento</th>
                         <th className="px-6 py-3 font-medium">Valor</th>
-                        <th className="px-6 py-3 font-medium">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Identificação</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matrícula</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Órgão</th>
                         <th className="px-6 py-3 font-medium text-right">Ação</th>
                       </tr>
                     </thead>
@@ -705,7 +714,10 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <Input label="CPF" name="cpf" value={editingMember.cpf || ''} onChange={handleEditMemberChange} required />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input label="CPF" name="cpf" value={editingMember.cpf || ''} onChange={handleEditMemberChange} required />
+                  <Input label="Matrícula" name="matricula" value={editingMember.matricula || ''} onChange={handleEditMemberChange} />
+                </div>
 
                 <div className="flex gap-4 pt-4 border-t">
                   <Button type="submit" className="flex-1" isLoading={loading}>Salvar Alterações</Button>

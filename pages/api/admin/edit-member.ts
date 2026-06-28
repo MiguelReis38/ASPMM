@@ -4,7 +4,7 @@ import { getServiceSupabase } from '../../../lib/supabase'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { id, fullName, cpf, workplace, birthDate, category, address, phone, validityDate, cardNumber, primaryMemberCode, photoUrl } = req.body
+  const { id, fullName, cpf, workplace, birthDate, category, address, phone, validityDate, cardNumber, primaryMemberCode, photoUrl, matricula } = req.body
 
   try {
     const supabaseAdmin = getServiceSupabase()
@@ -37,7 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       validity_date: validityDate ? validityDate : null,
       card_number: cardNumber,
       is_dependent: isDependentCategory,
-      primary_member_id: primaryMemberId
+      primary_member_id: primaryMemberId,
+      matricula: matricula || null
     }
 
     if (photoUrl) updates.photo_url = photoUrl;

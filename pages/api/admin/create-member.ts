@@ -4,7 +4,7 @@ import { getServiceSupabase } from '../../../lib/supabase'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { fullName, cpf, email, workplace, birthDate, category, address, phone, validityDate, primaryMemberCode, photoUrl } = req.body
+  const { fullName, cpf, email, workplace, birthDate, category, address, phone, validityDate, primaryMemberCode, photoUrl, matricula } = req.body
 
   try {
     const supabaseAdmin = getServiceSupabase()
@@ -70,11 +70,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         category: category || 'Titular',
         address: address || null,
         phone: phone || null,
-        validity_date: validityDate ? validityDate : null,
+        validity_date: validityDate || null,
         card_number: generatedCardNumber,
         photo_url: photoUrl || null,
         is_dependent: isDependentCategory,
         primary_member_id: primaryMemberId,
+        matricula: matricula || null,
         status: 'active',
         role: 'member'
       })
