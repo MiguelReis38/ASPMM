@@ -9,7 +9,6 @@ import { supabase } from '../../lib/supabase'
 import { formatCurrency, isDependentExempt } from '../../utils'
 import { Button } from '../../components/ui/Button'
 import { CreditCard, Users, Bell } from 'lucide-react'
-import { CheckoutModal } from '../../components/CheckoutModal'
 
 export default function MemberDashboard() {
   const { member } = useAuth()
@@ -20,7 +19,7 @@ export default function MemberDashboard() {
   const [activeTab, setActiveTab] = useState<'carteirinha' | 'financeiro' | 'dependentes' | 'mural'>('carteirinha')
   
   // Checkout State
-  const [checkoutPayment, setCheckoutPayment] = useState<any | null>(null)
+  const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null)
 
   useEffect(() => {
     if (member) {
@@ -64,12 +63,25 @@ export default function MemberDashboard() {
     }
   }
 
-  const handlePaymentSuccess = async () => {
-    if (!checkoutPayment) return;
-    await supabase.from('payments').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', checkoutPayment.id)
-    setCheckoutPayment(null)
-    fetchDashboardData()
-    alert('Pagamento processado com sucesso!')
+  const handlePay = async (paymentId: string) => {
+    setIsProcessingPayment(paymentId)
+    try {
+      const res = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId })
+      })
+      const data = await res.json()
+      
+      if (!res.ok) throw new Error(data.error || 'Erro ao gerar pagamento')
+      
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl // Redireciona para o PagSeguro
+      }
+    } catch (err: any) {
+      alert(err.message)
+      setIsProcessingPayment(null)
+    }
   }
 
   if (!member || loading) return <Layout><div className="flex justify-center p-10">Carregando...</div></Layout>
@@ -161,7 +173,11 @@ export default function MemberDashboard() {
                       </div>
                       <div className="text-left sm:text-right w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end">
                         <p className="font-black text-2xl text-brand-red">{formatCurrency(pay.amount)}</p>
-                        <Button onClick={() => setCheckoutPayment(pay)} className="mt-0 sm:mt-2 px-6 py-2 text-sm">
+                        <Button 
+                          onClick={() => handlePay(pay.id)} 
+                          isLoading={isProcessingPayment === pay.id}
+                          className="mt-0 sm:mt-2 px-6 py-2 text-sm"
+                        >
                           Pagar Agora
                         </Button>
                       </div>
@@ -260,16 +276,6 @@ export default function MemberDashboard() {
             </CardBody>
           </Card>
         </div>
-      )}
-
-      {checkoutPayment && (
-        <CheckoutModal 
-          paymentId={checkoutPayment.id}
-          amount={checkoutPayment.amount}
-          dueDate={checkoutPayment.due_date}
-          onClose={() => setCheckoutPayment(null)}
-          onSuccess={handlePaymentSuccess}
-        />
       )}
     </Layout>
   )
