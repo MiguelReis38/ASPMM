@@ -42,7 +42,7 @@ export default function AdminDashboard() {
   // New Member Form State
   const [newMember, setNewMember] = useState({
     fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', 
-    category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: ''
+    category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: '', createdAt: ''
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error(result.error || 'Erro ao criar sócio')
       
       alert(`Sócio cadastrado com sucesso! Código gerado: ${result.member.member_code}`)
-      setNewMember({ fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: '' })
+      setNewMember({ fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: '', createdAt: '' })
       setPhotoFile(null)
       fetchMembers()
     } catch (err: any) {
@@ -213,6 +213,7 @@ export default function AdminDashboard() {
         cardNumber: editingMember.card_number,
         primaryMemberCode: editingMember.primaryMemberCode || '',
         matricula: editingMember.matricula,
+        createdAt: editingMember.created_at ? editingMember.created_at.split('T')[0] : '',
         photoUrl: photoUrl
       }
 
@@ -301,6 +302,7 @@ export default function AdminDashboard() {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      transformHeader: function(h) { return h.trim(); },
       complete: async function(results) {
         setLoading(true)
         const data = results.data as any[]
@@ -597,6 +599,7 @@ export default function AdminDashboard() {
                 <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva (Se for dependente)" />
                 <Input label="Matrícula" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Matrícula Interna" />
                 <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} required />
+                <Input label="Data de Cadastro" type="date" name="createdAt" value={newMember.createdAt} onChange={handleNewMemberChange} />
 
                 <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white" isLoading={loading}>+ Salvar Associado</Button>
               </form>
@@ -807,7 +810,8 @@ export default function AdminDashboard() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Endereço" name="address" value={editingMember.address || ''} onChange={handleEditMemberChange} />
-                  <Input label="Data de Nascimento" type="date" name="birth_date" value={editingMember.birth_date || ''} onChange={handleEditMemberChange} required />
+                  <Input type="date" label="Data de Nascimento" name="birth_date" value={editingMember.birth_date || ''} onChange={handleEditMemberChange} />
+                  <Input type="date" label="Data de Cadastro" name="created_at" value={editingMember.created_at ? editingMember.created_at.split('T')[0] : ''} onChange={handleEditMemberChange} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
