@@ -316,7 +316,7 @@ export default function AdminDashboard() {
              const payload = {
                 member_code: Math.floor(100000 + Math.random() * 900000).toString(),
                 full_name: row.Nome,
-                cpf: row.CPF,
+                cpf: row.CPF ? String(row.CPF).trim() : Math.floor(10000000000 + Math.random() * 90000000000).toString(),
                 status: 'active',
                 category: row.Situacao || 'Titular',
                 is_dependent: false,
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
              if (titularRef) {
                const { data: tData } = await supabase.from('members')
                  .select('id')
-                 .or(`member_code.eq.${titularRef},full_name.ilike.${titularRef}`)
+                 .or(`member_code.eq."${titularRef}",full_name.ilike."%${titularRef}%"`)
                  .single()
                if (tData) primaryId = tData.id;
              }
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
              const payload = {
                 member_code: Math.floor(100000 + Math.random() * 900000).toString(),
                 full_name: row.Nome,
-                cpf: row.CPF,
+                cpf: row.CPF ? String(row.CPF).trim() : Math.floor(10000000000 + Math.random() * 90000000000).toString(),
                 status: 'active',
                 category: row.Situacao || 'Dependente',
                 is_dependent: true,

@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data: primaryData, error: primaryError } = await supabaseAdmin
         .from('members')
         .select('id')
-        .or(`member_code.eq.${primaryMemberCode},full_name.ilike.${primaryMemberCode}`)
+        .or(`member_code.eq."${primaryMemberCode}",full_name.ilike."%${primaryMemberCode}%"`)
         .single()
       
       if (primaryError || !primaryData) {
