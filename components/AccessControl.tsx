@@ -268,7 +268,7 @@ export const AccessControl = () => {
                       Data_Hora: new Date(log.created_at).toLocaleString('pt-BR'),
                       Socio: log.members?.full_name || 'Desconhecido',
                       Codigo: log.members?.member_code || '-',
-                      Status: log.status === 'success' ? 'Permitido' : 'Negado',
+                      Status: log.status === 'granted' ? 'Permitido' : 'Negado',
                       Motivo: log.reason || ''
                     })))
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
