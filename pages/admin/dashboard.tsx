@@ -825,7 +825,7 @@ export default function AdminDashboard() {
                     Endereco: m.address,
                     DataCriacao: m.created_at ? new Date(m.created_at).toLocaleDateString('pt-BR') : ''
                   })))
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' })
                   const link = document.createElement("a")
                   link.href = URL.createObjectURL(blob)
                   link.setAttribute("download", `associados_aspmm_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`)
@@ -868,7 +868,7 @@ export default function AdminDashboard() {
                   }
 
                   const csv = Papa.unparse(inadimplentes)
-                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' })
                   const link = document.createElement("a")
                   link.href = URL.createObjectURL(blob)
                   link.setAttribute("download", `inadimplentes_aspmm_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`)
