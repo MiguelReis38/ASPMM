@@ -73,6 +73,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <Link href="/admin/dashboard?tab=acessos" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.asPath.includes('tab=acessos') ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
                 <ScanLine size={20} /> Controle de Acesso
               </Link>
+              <Link href="/admin/dashboard?tab=relatorios" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${router.asPath.includes('tab=relatorios') ? 'bg-brand-blueDark' : 'hover:bg-white/10'}`}>
+                <LayoutDashboard size={20} /> Relatórios
+              </Link>
             </>
           ) : (
             <>

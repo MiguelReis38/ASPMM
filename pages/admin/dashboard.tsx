@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const [members, setMembers] = useState<any[]>([])
   const router = useRouter()
   const [payments, setPayments] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'associados' | 'cadastros' | 'financeiro' | 'comunicacao' | 'acessos'>('associados')
+  const [activeTab, setActiveTab] = useState<'associados' | 'cadastros' | 'financeiro' | 'comunicacao' | 'acessos' | 'relatorios'>('associados')
   
   useEffect(() => {
     if (router.query.tab) {
@@ -439,6 +439,15 @@ export default function AdminDashboard() {
                   Excluir Selecionados ({selectedMembers.length})
                 </Button>
               )}
+              {selectedMembers.length > 0 && (
+                <Button 
+                  variant="outline"
+                  className="border-brand-blue text-brand-blue"
+                  onClick={() => window.open(`/admin/print?ids=${selectedMembers.join(',')}`, '_blank')}
+                >
+                  Imprimir Selecionados ({selectedMembers.length})
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardBody className="p-0">
@@ -792,6 +801,87 @@ export default function AdminDashboard() {
 
       {activeTab === 'acessos' && (
          <AccessControl />
+      )}
+
+      {activeTab === 'relatorios' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <Card>
+            <CardHeader>
+              <h3 className="font-semibold text-lg">Relatórios Gerais</h3>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <p className="text-sm text-gray-500">Exporte a base de dados em formato CSV para abrir no Excel.</p>
+              <Button 
+                className="w-full bg-brand-blue text-white" 
+                onClick={() => {
+                  const csv = Papa.unparse(members.map(m => ({
+                    Nome: m.full_name,
+                    CPF: m.cpf,
+                    Matricula: m.matricula || m.member_code,
+                    Situacao: m.category,
+                    Status: m.status,
+                    Orgao: m.workplace,
+                    Telefone: m.phone,
+                    Endereco: m.address,
+                    DataCriacao: m.created_at ? new Date(m.created_at).toLocaleDateString('pt-BR') : ''
+                  })))
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                  const link = document.createElement("a")
+                  link.href = URL.createObjectURL(blob)
+                  link.setAttribute("download", `associados_aspmm_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`)
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+                }}
+              >
+                Exportar Todos os Associados (CSV)
+              </Button>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h3 className="font-semibold text-lg">Relatório Financeiro</h3>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <p className="text-sm text-gray-500">Exporte associados com mensalidades atrasadas no mês atual.</p>
+              <Button 
+                variant="outline"
+                className="w-full border-brand-red text-brand-red hover:bg-red-50"
+                onClick={() => {
+                  const inadimplentes = payments
+                    .filter(p => p.status === 'pending')
+                    .map(p => {
+                       const m = members.find(mem => mem.id === p.member_id)
+                       return m ? {
+                         Nome: m.full_name,
+                         CPF: m.cpf,
+                         Telefone: m.phone,
+                         Vencimento: new Date(p.due_date).toLocaleDateString('pt-BR'),
+                         Valor: p.amount
+                       } : null
+                    }).filter(Boolean)
+                  
+                  if (inadimplentes.length === 0) {
+                     alert("Nenhum associado inadimplente encontrado neste mês!")
+                     return
+                  }
+
+                  const csv = Papa.unparse(inadimplentes)
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                  const link = document.createElement("a")
+                  link.href = URL.createObjectURL(blob)
+                  link.setAttribute("download", `inadimplentes_aspmm_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`)
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+                }}
+              >
+                Exportar Inadimplentes (CSV)
+              </Button>
+            </CardBody>
+          </Card>
+        </div>
       )}
 
       {/* Edit Modal */}
