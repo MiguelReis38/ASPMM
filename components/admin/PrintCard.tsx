@@ -12,6 +12,8 @@ interface PrintCardProps {
     photo_url?: string
     member_code: string
     matricula?: string
+    birth_date?: string
+    validity_date?: string
   }
 }
 
@@ -67,14 +69,22 @@ export const PrintCard = ({ member }: PrintCardProps) => {
         </div>
 
         {/* Rodapé: Dados */}
-        <div className="grid grid-cols-2 gap-2 mt-2 border-t pt-2 border-gray-200">
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 border-t pt-1 border-gray-200">
           <div>
-             <p className="text-[7px] text-gray-500 uppercase font-bold">Matrícula</p>
-             <p className="font-bold text-[10px] text-brand-blue">{member.matricula || member.member_code}</p>
+             <p className="text-[6px] text-gray-500 uppercase font-bold">Matrícula</p>
+             <p className="font-bold text-[8px] text-brand-blue">{member.matricula || member.member_code}</p>
           </div>
           <div>
-             <p className="text-[7px] text-gray-500 uppercase font-bold">Categoria</p>
-             <p className="font-bold text-[10px] text-gray-800 truncate">{member.category || 'Titular'}</p>
+             <p className="text-[6px] text-gray-500 uppercase font-bold">Categoria</p>
+             <p className="font-bold text-[8px] text-gray-800 truncate">{member.category || 'Titular'}</p>
+          </div>
+          <div>
+             <p className="text-[6px] text-gray-500 uppercase font-bold">Nascimento</p>
+             <p className="font-bold text-[8px] text-gray-800">{member.birth_date ? new Date(member.birth_date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}</p>
+          </div>
+          <div>
+             <p className="text-[6px] text-gray-500 uppercase font-bold">Vencimento</p>
+             <p className="font-bold text-[8px] text-gray-800">{member.validity_date ? new Date(member.validity_date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Indeterminado'}</p>
           </div>
         </div>
       </div>

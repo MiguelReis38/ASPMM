@@ -6,6 +6,7 @@ import { Button } from './ui/Button';
 import { useAuth } from '../lib/AuthContext';
 import { Camera, CheckCircle2, XCircle, QrCode, X, ScanLine, UserCheck } from 'lucide-react';
 import { format } from 'date-fns';
+import Papa from 'papaparse';
 
 export const AccessControl = () => {
   const { user } = useAuth();
@@ -14,13 +15,14 @@ export const AccessControl = () => {
   const [scanResult, setScanResult] = useState<{ status: string, message: string, member?: any } | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const fetchLogs = async () => {
-    // Fix timezone issue when parsing date string
-    const [year, month, day] = selectedDate.split('-');
-    const startOfDay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
-    const endOfDay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59, 999);
+    const [sYear, sMonth, sDay] = startDate.split('-');
+    const [eYear, eMonth, eDay] = endDate.split('-');
+    const startOfDay = new Date(parseInt(sYear), parseInt(sMonth) - 1, parseInt(sDay), 0, 0, 0, 0);
+    const endOfDay = new Date(parseInt(eYear), parseInt(eMonth) - 1, parseInt(eDay), 23, 59, 59, 999);
 
     const { data, error } = await supabase
       .from('access_logs')
@@ -36,7 +38,7 @@ export const AccessControl = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, [selectedDate]);
+  }, [startDate, endDate]);
 
   const startScanner = () => {
     setScannerActive(true);
@@ -242,14 +244,45 @@ export const AccessControl = () => {
 
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h3 className="font-semibold text-lg">Histórico de Acessos</h3>
-              <input 
-                type="date" 
-                value={selectedDate} 
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-brand-blue"
-              />
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input 
+                  type="date" 
+                  value={startDate} 
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-gray-50 flex-1 sm:flex-none"
+                />
+                <span className="text-gray-500 text-sm">até</span>
+                <input 
+                  type="date" 
+                  value={endDate} 
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-gray-50 flex-1 sm:flex-none"
+                />
+                <Button 
+                  variant="outline" 
+                  className="text-brand-blue border-brand-blue py-1.5 px-3 h-auto"
+                  onClick={() => {
+                    const csv = Papa.unparse(logs.map(log => ({
+                      Data_Hora: new Date(log.created_at).toLocaleString('pt-BR'),
+                      Socio: log.members?.full_name || 'Desconhecido',
+                      Codigo: log.members?.member_code || '-',
+                      Status: log.status === 'success' ? 'Permitido' : 'Negado',
+                      Motivo: log.reason || ''
+                    })))
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+                    const link = document.createElement("a")
+                    link.href = URL.createObjectURL(blob)
+                    link.setAttribute("download", `acessos_${startDate}_a_${endDate}.csv`)
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                  }}
+                >
+                  Exportar (CSV)
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardBody>
