@@ -22,7 +22,8 @@ function getTenthBusinessDay(year: number, month: number): Date {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { month } = req.body;
+  const { month, amount } = req.body;
+  const feeAmount = parseFloat(amount) || 50.00;
 
   try {
     const supabaseAdmin = getServiceSupabase()
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (membersError) throw membersError
     if (!members || members.length === 0) {
-      return res.status(200).json({ success: true, message: 'Nenhum associado titular ativo encontrado.', generated: 0 })
+      return res.status(200).json({ success: true, message: 'Nenhum associado da categoria Verde ou Amarela encontrado.', generated: 0 })
     }
 
     const today = new Date()
@@ -57,12 +58,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .single()
       
       if (!existing) {
-        // Create 50 BRL charge
+        // Create charge with dynamic amount
         const { error: insertError } = await supabaseAdmin
           .from('payments')
           .insert({
             member_id: member.id,
-            amount: 50.00,
+            amount: feeAmount,
             due_date: dueDate,
             status: 'pending'
           })
@@ -70,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    res.status(200).json({ success: true, message: `${generated} mensalidades de R$ 50,00 geradas para o dia ${dueDate}.`, generated })
+    res.status(200).json({ success: true, message: `${generated} mensalidades de R$ ${feeAmount.toFixed(2)} geradas para o dia ${dueDate}.`, generated })
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Internal Server Error' })
   }

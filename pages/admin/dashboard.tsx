@@ -32,6 +32,7 @@ export default function AdminDashboard() {
 
   // Finance State
   const [feeMonth, setFeeMonth] = useState(new Date().getMonth().toString())
+  const [feeAmount, setFeeAmount] = useState('50.00')
   const [paymentSearchTerm, setPaymentSearchTerm] = useState('')
 
   // Announcements State
@@ -606,8 +607,8 @@ export default function AdminDashboard() {
                     <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className="w-full text-sm border p-1 rounded bg-gray-50" />
                   </div>
                 </div>
-                {newMember.category?.toLowerCase().includes('dep') && (
-                  <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva ou 123456" />
+                {(newMember.category?.toLowerCase().includes('dep') || newMember.category === 'Amarela Carterinha' || newMember.category === 'Verde Carterinha') && (
+                  <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva ou 123456" required />
                 )}
                 <Input label="Matrícula" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Matrícula Interna" />
                 <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} />
@@ -674,7 +675,11 @@ export default function AdminDashboard() {
                 <h3 className="font-semibold text-lg">Geração Automática</h3>
               </CardHeader>
               <CardBody>
-                <p className="text-sm text-gray-500 mb-6">Gera a mensalidade de R$ 50,00 para associados com Categoria Amarela ou Verde referente ao mês selecionado acima. Os demais são isentos de cobrança online.</p>
+                <p className="text-sm text-gray-500 mb-6">Gera a mensalidade para os associados com Categoria Amarela ou Verde referente ao mês selecionado acima. Os demais são isentos de cobrança online.</p>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor da Mensalidade (R$)</label>
+                  <input type="number" step="0.01" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-blue" value={feeAmount} onChange={(e) => setFeeAmount(e.target.value)} />
+                </div>
                 <Button 
                   className="w-full bg-brand-blue hover:bg-brand-blueDark text-white" 
                   onClick={async () => {
@@ -683,7 +688,7 @@ export default function AdminDashboard() {
                       const res = await fetch('/api/admin/generate-monthly-fees', { 
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ month: feeMonth })
+                        body: JSON.stringify({ month: feeMonth, amount: feeAmount })
                       })
                       const data = await res.json()
                       alert(data.message || data.error)

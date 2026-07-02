@@ -15,11 +15,13 @@ export default function MemberDashboard() {
   const [dependents, setDependents] = useState<any[]>([])
   const [payments, setPayments] = useState<any[]>([])
   const [announcements, setAnnouncements] = useState<any[]>([])
+  const [accessLogs, setAccessLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'carteirinha' | 'financeiro' | 'dependentes' | 'mural'>('carteirinha')
+  const [activeTab, setActiveTab] = useState<'carteirinha' | 'financeiro' | 'dependentes' | 'mural' | 'acessos'>('carteirinha')
   
   // Checkout State
   const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null)
+  const [pixQrCode, setPixQrCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (member) {
@@ -56,6 +58,16 @@ export default function MemberDashboard() {
       
       if (annData) setAnnouncements(annData)
 
+      // Fetch Access Logs
+      const { data: logsData } = await supabase
+        .from('access_logs')
+        .select('*')
+        .eq('member_id', member?.id)
+        .order('entry_time', { ascending: false })
+        .limit(20)
+      
+      if (logsData) setAccessLogs(logsData)
+
     } catch (error) {
       console.error(error)
     } finally {
@@ -63,23 +75,27 @@ export default function MemberDashboard() {
     }
   }
 
-  const handlePay = async (paymentId: string) => {
+  const handlePay = async (paymentId: string, method: 'PIX' | 'CREDIT_CARD') => {
     setIsProcessingPayment(paymentId)
+    setPixQrCode(null)
     try {
-      const res = await fetch('/api/payments/create-checkout', {
+      const res = await fetch('/api/payments/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId })
+        body: JSON.stringify({ paymentId, method })
       })
       const data = await res.json()
       
       if (!res.ok) throw new Error(data.error || 'Erro ao gerar pagamento')
       
-      if (data.checkoutUrl) {
+      if (method === 'CREDIT_CARD' && data.checkoutUrl) {
         window.location.href = data.checkoutUrl // Redireciona para o PagSeguro
+      } else if (method === 'PIX' && data.qrCodeText) {
+        setPixQrCode(data.qrCodeText)
       }
     } catch (err: any) {
       alert(err.message)
+    } finally {
       setIsProcessingPayment(null)
     }
   }
@@ -91,6 +107,7 @@ export default function MemberDashboard() {
     { id: 'financeiro', label: 'Financeiro' },
     { id: 'dependentes', label: 'Dependentes' },
     { id: 'mural', label: 'Mural' },
+    { id: 'acessos', label: 'Meus Acessos' },
   ];
 
   const requiresPayment = member.category === 'Amarela Carterinha' || member.category === 'Verde Carterinha'
@@ -171,18 +188,35 @@ export default function MemberDashboard() {
                         <p className="font-bold text-gray-800 text-lg">Mensalidade - {new Date(pay.due_date).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
                         <p className="text-sm text-red-600 font-medium">Vencimento: {new Date(pay.due_date).toLocaleDateString('pt-BR')}</p>
                       </div>
-                      <div className="text-left sm:text-right w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end">
+                      <div className="text-left sm:text-right w-full sm:w-auto flex sm:flex-col justify-between items-center sm:items-end gap-2">
                         <p className="font-black text-2xl text-brand-red">{formatCurrency(pay.amount)}</p>
-                        <Button 
-                          onClick={() => handlePay(pay.id)} 
-                          isLoading={isProcessingPayment === pay.id}
-                          className="mt-0 sm:mt-2 px-6 py-2 text-sm"
-                        >
-                          Pagar Agora
-                        </Button>
+                        <div className="flex gap-2">
+                           <Button 
+                             onClick={() => handlePay(pay.id, 'PIX')} 
+                             isLoading={isProcessingPayment === pay.id}
+                             className="mt-0 sm:mt-2 px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white"
+                           >
+                             PIX
+                           </Button>
+                           <Button 
+                             onClick={() => handlePay(pay.id, 'CREDIT_CARD')} 
+                             isLoading={isProcessingPayment === pay.id}
+                             className="mt-0 sm:mt-2 px-4 py-2 text-sm"
+                           >
+                             Cartão / Boleto
+                           </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
+                  {pixQrCode && (
+                     <div className="mt-4 p-6 bg-white border border-gray-200 rounded-xl text-center">
+                        <h4 className="font-bold text-lg mb-2">Pague com PIX</h4>
+                        <p className="text-sm text-gray-500 mb-4">Copie o código abaixo e cole no aplicativo do seu banco:</p>
+                        <textarea className="w-full h-24 p-2 border rounded font-mono text-xs mb-2" readOnly value={pixQrCode} />
+                        <Button onClick={() => navigator.clipboard.writeText(pixQrCode)}>Copiar Código PIX</Button>
+                     </div>
+                  )}
                 </div>
               )}
             </CardBody>
@@ -269,6 +303,45 @@ export default function MemberDashboard() {
                         <p className="text-gray-600 mb-4 whitespace-pre-wrap leading-relaxed">{ann.content}</p>
                         <p className="text-xs text-gray-400 font-medium">{new Date(ann.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* Tab Content: Acessos */}
+      {activeTab === 'acessos' && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <Card>
+            <CardHeader className="flex items-center gap-2">
+              <Users className="text-brand-blue" />
+              <h3 className="font-semibold text-lg">Meu Histórico de Acessos</h3>
+            </CardHeader>
+            <CardBody>
+              {accessLogs.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">
+                  <p>Você não possui registros de acesso recentes.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {accessLogs.map(log => (
+                    <div key={log.id} className="flex flex-col sm:flex-row justify-between p-4 border rounded-xl border-gray-100 bg-white">
+                       <div className="font-medium text-gray-800">
+                          Data: {new Date(log.entry_time).toLocaleDateString('pt-BR')}
+                       </div>
+                       <div className="flex gap-6 mt-2 sm:mt-0">
+                          <div>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase">Entrada</p>
+                            <p className="font-bold text-green-600">{new Date(log.entry_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase">Saída</p>
+                            <p className="font-bold text-orange-500">{log.exit_time ? new Date(log.exit_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</p>
+                          </div>
+                       </div>
                     </div>
                   ))}
                 </div>
