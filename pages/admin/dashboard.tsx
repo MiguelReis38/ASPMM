@@ -885,10 +885,12 @@ export default function AdminDashboard() {
             
             <style>{`
               @media print {
+                html, body, #__next { height: 100vh !important; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
                 body * { visibility: hidden; }
                 #printable-card, #printable-card * { visibility: visible !important; }
-                #printable-card { position: absolute; left: 0; top: 0; width: 100%; display: flex; justify-content: center; margin: 0; padding: 0; }
+                #printable-card { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; padding: 0; z-index: 99999; }
               }
+              @page { size: auto; margin: 0; }
             `}</style>
           </div>
         </div>
