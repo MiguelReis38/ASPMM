@@ -40,6 +40,7 @@ export default function AdminDashboard() {
   const [announcementTitle, setAnnouncementTitle] = useState('')
   const [announcementContent, setAnnouncementContent] = useState('')
   const [announcementImage, setAnnouncementImage] = useState<File | null>(null)
+  const [announcementsList, setAnnouncementsList] = useState<any[]>([])
   
   // New Member Form State
   const [newMember, setNewMember] = useState({
@@ -74,6 +75,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (member?.role === 'admin' || member?.role === 'president') {
       fetchMembers()
+      fetchAnnouncements()
       if (member?.role === 'president') {
         fetchPayments()
       }
@@ -88,6 +90,26 @@ export default function AdminDashboard() {
   const fetchPayments = async () => {
     const { data } = await supabase.from('payments').select('*, members(full_name, member_code, category)').order('created_at', { ascending: false })
     if (data) setPayments(data)
+  }
+
+  const fetchAnnouncements = async () => {
+    const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false })
+    if (data) setAnnouncementsList(data)
+  }
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir este comunicado?')) return;
+    setLoading(true)
+    try {
+      const { error } = await supabase.from('announcements').delete().eq('id', id)
+      if (error) throw error
+      alert('Comunicado excluído com sucesso!')
+      fetchAnnouncements()
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handlePostAnnouncement = async (e: React.FormEvent) => {
@@ -115,7 +137,10 @@ export default function AdminDashboard() {
       setAnnouncementTitle('')
       setAnnouncementContent('')
       setAnnouncementImage(null)
+      const fileInput = document.getElementById('announcement-image-input') as HTMLInputElement
+      if (fileInput) fileInput.value = ''
       alert('Comunicado publicado com sucesso!')
+      fetchAnnouncements()
     } catch (err: any) {
       alert(err.message)
     } finally {
@@ -776,9 +801,42 @@ export default function AdminDashboard() {
                   onChange={(e) => setAnnouncementContent(e.target.value)}
                   required
                 ></textarea>
-                <input type="file" accept="image/*" onChange={(e) => setAnnouncementImage(e.target.files?.[0] || null)} className="w-full text-sm border p-2 rounded bg-gray-50" />
-                <Button type="submit" className="w-full" isLoading={loading}>Publicar no Mural</Button>
+                <input id="announcement-image-input" type="file" accept="image/*" onChange={(e) => setAnnouncementImage(e.target.files?.[0] || null)} className="w-full text-sm border p-2 rounded bg-gray-50" />
+                <Button type="submit" className="w-full bg-brand-blue hover:bg-brand-blueDark text-white" isLoading={loading}>Publicar no Mural</Button>
               </form>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h3 className="font-semibold text-lg">Comunicados Publicados</h3>
+            </CardHeader>
+            <CardBody className="max-h-[500px] overflow-y-auto">
+              <div className="space-y-4">
+                {announcementsList.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center py-8">Nenhum comunicado publicado.</p>
+                ) : (
+                  announcementsList.map(ann => (
+                    <div key={ann.id} className="p-4 border rounded-xl bg-gray-50 flex flex-col gap-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <h4 className="font-bold text-gray-800">{ann.title}</h4>
+                        <button onClick={() => handleDeleteAnnouncement(ann.id)} className="text-red-500 hover:text-red-700 text-sm font-semibold shrink-0" disabled={loading}>
+                          Excluir
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{ann.content}</p>
+                      {ann.image_url && (
+                        <div className="mt-2">
+                          <img src={ann.image_url} alt="Comunicado" className="max-h-40 object-cover rounded-lg border" />
+                        </div>
+                      )}
+                      <span className="text-xs text-gray-400 mt-2 block">
+                        Publicado em {new Date(ann.created_at).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
             </CardBody>
           </Card>
         </div>
