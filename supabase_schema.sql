@@ -1,24 +1,31 @@
--- Create ENUM for roles if needed, or just use text constraints.
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Table: members
 CREATE TABLE IF NOT EXISTS members (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL, 
-    member_code TEXT UNIQUE, -- Novo: Código visível do sócio (ex: 6 dígitos)
-    full_name TEXT NOT NULL,
-    cpf TEXT UNIQUE NOT NULL,
-    workplace TEXT,
-    is_dependent BOOLEAN DEFAULT FALSE,
-    primary_member_id UUID REFERENCES members(id) ON DELETE CASCADE, 
-    birth_date DATE NOT NULL,
-    is_pcd BOOLEAN DEFAULT FALSE,
-    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending')),
-    role TEXT DEFAULT 'member' CHECK (role IN ('member', 'admin')),
-    photo_url TEXT,
-    payslip_url TEXT, -- Novo: Holerite (comprovante)
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4()
 );
+
+-- Add all necessary columns if they don't exist
+ALTER TABLE members ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS member_code TEXT UNIQUE;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS full_name TEXT NOT NULL DEFAULT 'Sem Nome';
+ALTER TABLE members ADD COLUMN IF NOT EXISTS cpf TEXT UNIQUE;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS workplace TEXT;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS is_dependent BOOLEAN DEFAULT FALSE;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS primary_member_id UUID REFERENCES members(id) ON DELETE CASCADE;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS birth_date DATE;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS is_pcd BOOLEAN DEFAULT FALSE;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending'));
+ALTER TABLE members ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'member' CHECK (role IN ('member', 'admin'));
+ALTER TABLE members ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS payslip_url TEXT;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS matricula TEXT;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS validity_date DATE;
+ALTER TABLE members ADD COLUMN IF NOT EXISTS phone TEXT;
 
 -- Table: payments
 CREATE TABLE IF NOT EXISTS payments (

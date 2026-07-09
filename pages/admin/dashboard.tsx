@@ -11,6 +11,7 @@ import Papa from 'papaparse'
 import { formatCurrency } from '../../utils'
 
 import { AccessControl } from '../../components/AccessControl'
+import { DigitalCard } from '../../components/DigitalCard'
 
 export default function AdminDashboard() {
   const { member } = useAuth()
@@ -49,6 +50,7 @@ export default function AdminDashboard() {
   
   // Edit Modal State
   const [editingMember, setEditingMember] = useState<any | null>(null)
+  const [previewingCardMember, setPreviewingCardMember] = useState<any | null>(null)
 
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -386,8 +388,6 @@ export default function AdminDashboard() {
 
   if (member?.role !== 'admin' && member?.role !== 'president') return <Layout><div className="p-10 text-center">Acesso Negado</div></Layout>
 
-
-
   const filteredMembers = members.filter(m => 
     m.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     m.member_code.includes(searchTerm)
@@ -416,8 +416,6 @@ export default function AdminDashboard() {
 
       <div className="mb-2"></div>
 
-
-
       {activeTab === 'associados' && (
         <Card className="h-full animate-in fade-in slide-in-from-bottom-2 duration-300">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -438,15 +436,6 @@ export default function AdminDashboard() {
                   isLoading={loading}
                 >
                   Excluir Selecionados ({selectedMembers.length})
-                </Button>
-              )}
-              {selectedMembers.length > 0 && (
-                <Button 
-                  variant="outline"
-                  className="border-brand-blue text-brand-blue"
-                  onClick={() => window.open(`/admin/print?ids=${selectedMembers.join(',')}`, '_blank')}
-                >
-                  Imprimir Selecionados ({selectedMembers.length})
                 </Button>
               )}
             </div>
@@ -519,11 +508,11 @@ export default function AdminDashboard() {
                             )}
                           </td>
                           <td className="px-6 py-4 text-right flex justify-end gap-2">
+                            <Button variant="outline" className="text-xs py-1 px-3 border-brand-blue text-brand-blue" onClick={() => setPreviewingCardMember(m)}>Ver Carteirinha</Button>
                             <Button variant="outline" className="text-xs py-1 px-3" onClick={() => setEditingMember(m)}>Editar</Button>
                             <Button variant="danger" className="text-xs py-1 px-3 bg-red-100 text-red-600 hover:bg-red-200 shadow-none border-none" onClick={() => handleDeleteMember(m.id, m.full_name)}>Excluir</Button>
                           </td>
                         </tr>
-                        {/* Render Dependents beneath */}
                         {deps.length > 0 && expandedMembers.includes(m.id) && (
                           <tr className="border-b bg-gray-50/50">
                             <td colSpan={8} className="px-12 py-3">
@@ -541,6 +530,7 @@ export default function AdminDashboard() {
                                     </div>
                                     <div className="flex gap-4 items-center">
                                       <span className="text-brand-blue">{d.category}</span>
+                                      <button onClick={() => setPreviewingCardMember(d)} className="text-brand-blue font-semibold hover:underline">Ver Carteirinha</button>
                                       <button onClick={() => setEditingMember(d)} className="text-gray-500 hover:text-brand-blue underline">Editar</button>
                                       <button onClick={() => handleDeleteMember(d.id, d.full_name)} className="text-red-400 hover:text-red-600 underline">Excluir</button>
                                     </div>
@@ -638,7 +628,6 @@ export default function AdminDashboard() {
 
       {activeTab === 'financeiro' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm gap-4">
             <div>
               <h3 className="font-semibold text-lg text-gray-800">Resumo Financeiro</h3>
@@ -675,7 +664,7 @@ export default function AdminDashboard() {
                 <h3 className="font-semibold text-lg">Geração Automática</h3>
               </CardHeader>
               <CardBody>
-                <p className="text-sm text-gray-500 mb-6">Gera a mensalidade para os associados com Categoria Amarela ou Verde referente ao mês selecionado acima. Os demais são isentos de cobrança online.</p>
+                <p className="text-sm text-gray-500 mb-6">Gera a mensalidade para os associados com Categoria Amarela ou Verde referente ao mês selecionado acima.</p>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Valor da Mensalidade (R$)</label>
                   <input type="number" step="0.01" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-blue" value={feeAmount} onChange={(e) => setFeeAmount(e.target.value)} />
@@ -725,9 +714,6 @@ export default function AdminDashboard() {
                         <th className="px-6 py-3 font-medium">Sócio</th>
                         <th className="px-6 py-3 font-medium">Vencimento</th>
                         <th className="px-6 py-3 font-medium">Valor</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Identificação</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matrícula</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Órgão</th>
                         <th className="px-6 py-3 font-medium text-right">Ação</th>
                       </tr>
                     </thead>
@@ -744,11 +730,6 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-3">{new Date(p.due_date).toLocaleDateString('pt-BR')}</td>
                           <td className="px-6 py-3 font-bold">{formatCurrency(p.amount)}</td>
-                          <td className="px-6 py-3">
-                            <span className={`px-2 py-1 rounded-full text-[10px] uppercase font-bold ${p.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                              {p.status === 'paid' ? 'Pago' : 'Pendente'}
-                            </span>
-                          </td>
                           <td className="px-6 py-3 text-right">
                             {p.status === 'pending' && (
                               <Button variant="outline" className="text-xs py-1" onClick={() => handleMarkAsPaid(p.id)} isLoading={loading}>Dar Baixa</Button>
@@ -756,15 +737,6 @@ export default function AdminDashboard() {
                           </td>
                         </tr>
                       ))}
-                      {payments.filter(p => {
-                        if (!paymentSearchTerm) return true;
-                        const term = paymentSearchTerm.toLowerCase();
-                        return p.members?.full_name?.toLowerCase().includes(term) || p.members?.member_code?.toLowerCase().includes(term);
-                      }).length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="px-6 py-6 text-center text-gray-500">Nenhuma cobrança registrada.</td>
-                        </tr>
-                      )}
                     </tbody>
                   </table>
                 </div>
@@ -783,20 +755,14 @@ export default function AdminDashboard() {
             <CardBody>
               <form onSubmit={handlePostAnnouncement} className="space-y-4">
                 <Input label="Título do Comunicado" value={announcementTitle} onChange={(e) => setAnnouncementTitle(e.target.value)} required />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mensagem (Aviso aos associados)</label>
-                  <textarea 
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none min-h-[150px]"
-                    placeholder="Sua mensagem principal..."
-                    value={announcementContent}
-                    onChange={(e) => setAnnouncementContent(e.target.value)}
-                    required
-                  ></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Imagem / Banner (Opcional)</label>
-                  <input type="file" accept="image/*" onChange={(e) => setAnnouncementImage(e.target.files?.[0] || null)} className="w-full text-sm border p-2 rounded bg-gray-50" />
-                </div>
+                <textarea 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none min-h-[150px]"
+                  placeholder="Sua mensagem principal..."
+                  value={announcementContent}
+                  onChange={(e) => setAnnouncementContent(e.target.value)}
+                  required
+                ></textarea>
+                <input type="file" accept="image/*" onChange={(e) => setAnnouncementImage(e.target.files?.[0] || null)} className="w-full text-sm border p-2 rounded bg-gray-50" />
                 <Button type="submit" className="w-full" isLoading={loading}>Publicar no Mural</Button>
               </form>
             </CardBody>
@@ -804,88 +770,43 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'acessos' && (
-         <AccessControl />
-      )}
+      {activeTab === 'acessos' && <AccessControl />}
 
       {activeTab === 'relatorios' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <Card>
-            <CardHeader>
-              <h3 className="font-semibold text-lg">Relatórios Gerais</h3>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <p className="text-sm text-gray-500">Exporte a base de dados em formato CSV para abrir no Excel.</p>
-              <Button 
-                className="w-full bg-brand-blue text-white" 
-                onClick={() => {
-                  const csv = Papa.unparse(members.map(m => ({
-                    Nome: m.full_name,
-                    CPF: m.cpf,
-                    Matricula: m.matricula || m.member_code,
-                    Situacao: m.category,
-                    Status: m.status,
-                    Orgao: m.workplace,
-                    Telefone: m.phone,
-                    Endereco: m.address,
-                    DataCriacao: m.created_at ? new Date(m.created_at).toLocaleDateString('pt-BR') : ''
-                  })))
+            <CardHeader><h3 className="font-semibold text-lg">Relatórios Gerais</h3></CardHeader>
+            <CardBody>
+              <Button onClick={() => {
+                  const csv = Papa.unparse(members.map(m => ({ Nome: m.full_name, CPF: m.cpf, Situacao: m.category })))
                   const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' })
                   const link = document.createElement("a")
                   link.href = URL.createObjectURL(blob)
-                  link.setAttribute("download", `associados_aspmm_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`)
-                  document.body.appendChild(link)
+                  link.setAttribute("download", `associados_${new Date().toLocaleDateString()}.csv`)
                   link.click()
-                  document.body.removeChild(link)
-                }}
-              >
-                Exportar Todos os Associados (CSV)
-              </Button>
+                }}>Exportar Associados (CSV)</Button>
             </CardBody>
           </Card>
+        </div>
+      )}
 
-          <Card>
-            <CardHeader>
-              <h3 className="font-semibold text-lg">Relatório Financeiro</h3>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <p className="text-sm text-gray-500">Exporte associados com mensalidades atrasadas no mês atual.</p>
-              <Button 
-                variant="outline"
-                className="w-full border-brand-red text-brand-red hover:bg-red-50"
-                onClick={() => {
-                  const inadimplentes = payments
-                    .filter(p => p.status === 'pending')
-                    .map(p => {
-                       const m = members.find(mem => mem.id === p.member_id)
-                       return m ? {
-                         Nome: m.full_name,
-                         CPF: m.cpf,
-                         Telefone: m.phone,
-                         Vencimento: new Date(p.due_date).toLocaleDateString('pt-BR'),
-                         Valor: p.amount
-                       } : null
-                    }).filter(Boolean)
-                  
-                  if (inadimplentes.length === 0) {
-                     alert("Nenhum associado inadimplente encontrado neste mês!")
-                     return
-                  }
-
-                  const csv = Papa.unparse(inadimplentes)
-                  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' })
-                  const link = document.createElement("a")
-                  link.href = URL.createObjectURL(blob)
-                  link.setAttribute("download", `inadimplentes_aspmm_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`)
-                  document.body.appendChild(link)
-                  link.click()
-                  document.body.removeChild(link)
-                }}
-              >
-                Exportar Inadimplentes (CSV)
-              </Button>
-            </CardBody>
-          </Card>
+      {/* Edit Modal */}
+      {editingMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl p-6 mt-10 mb-10">
+            <h3 className="text-xl font-bold mb-4">Editar Associado</h3>
+            <form onSubmit={handleSaveEditMember} className="space-y-4">
+              <Input label="Nome" name="full_name" value={editingMember.full_name || ''} onChange={handleEditMemberChange} required />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label="CPF" name="cpf" value={editingMember.cpf || ''} onChange={handleEditMemberChange} />
+                <Input label="Matrícula" name="matricula" value={editingMember.matricula || ''} onChange={handleEditMemberChange} />
+              </div>
+              <div className="flex gap-4 pt-4 border-t">
+                <Button type="submit" className="flex-1" isLoading={loading}>Salvar Alterações</Button>
+                <Button variant="outline" onClick={() => { setEditingMember(null); setPhotoFile(null) }} className="flex-1">Cancelar</Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -938,13 +859,41 @@ export default function AdminDashboard() {
 
                 <div className="flex gap-4 pt-4 border-t">
                   <Button type="submit" className="flex-1" isLoading={loading}>Salvar Alterações</Button>
-                  <Button variant="outline" className="flex-1" onClick={() => setEditingMember(null)}>Cancelar</Button>
+                  <Button variant="outline" onClick={() => { setEditingMember(null); setPhotoFile(null) }} className="flex-1">Cancelar</Button>
                 </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Digital Card Preview Modal */}
+      {previewingCardMember && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-gray-100 rounded-2xl w-full max-w-md shadow-2xl p-6 relative my-10">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Preview da Carteirinha</h3>
+              <button onClick={() => setPreviewingCardMember(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">✕</button>
+            </div>
+            
+            <div id="printable-card" className="flex justify-center mb-6">
+               <DigitalCard member={previewingCardMember} />
+            </div>
+
+            <div className="flex gap-4 border-t border-gray-200 pt-4">
+              <Button onClick={() => window.print()} className="flex-1 bg-brand-blue text-white shadow-md hover:bg-brand-blueDark">Imprimir Carteirinha</Button>
+            </div>
+            
+            <style>{`
+              @media print {
+                body * { visibility: hidden; }
+                #printable-card, #printable-card * { visibility: visible !important; }
+                #printable-card { position: absolute; left: 0; top: 0; width: 100%; display: flex; justify-content: center; margin: 0; padding: 0; }
+              }
+            `}</style>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }

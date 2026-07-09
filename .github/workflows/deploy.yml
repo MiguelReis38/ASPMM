@@ -1,0 +1,47 @@
+name: Deploy to Locaweb via FTP
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Código
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar Dependências
+        run: npm ci
+
+      - name: Build do Projeto Next.js
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # Não é estritamente necessário para o build, mas recomendado se alguma página estática depender disso:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Preparar Arquivos Standalone
+        run: |
+          # O Next.js no modo standalone cria a pasta .next/standalone.
+          # Precisamos copiar a pasta public e a pasta .next/static para dentro do standalone.
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
+
+      - name: Deploy via FTP para Locaweb
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: .next/standalone/
+          server-dir: ./
