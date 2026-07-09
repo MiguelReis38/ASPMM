@@ -864,7 +864,6 @@ export default function AdminDashboard() {
               </form>
             </div>
           </div>
-        </div>
       )}
 
       {/* Digital Card Preview Modal */}
