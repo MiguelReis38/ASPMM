@@ -14,7 +14,7 @@ import { AccessControl } from '../../components/AccessControl'
 import { DigitalCard } from '../../components/DigitalCard'
 
 export default function AdminDashboard() {
-  const { member } = useAuth()
+  const { user, member } = useAuth()
   const [members, setMembers] = useState<any[]>([])
   const router = useRouter()
   const [payments, setPayments] = useState<any[]>([])
@@ -670,8 +670,10 @@ export default function AdminDashboard() {
                   <input type="number" step="0.01" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-blue" value={feeAmount} onChange={(e) => setFeeAmount(e.target.value)} />
                 </div>
                 <Button 
-                  className="w-full bg-brand-blue hover:bg-brand-blueDark text-white" 
+                  className="w-full bg-brand-blue hover:bg-brand-blueDark text-white disabled:opacity-50" 
+                  disabled={user?.email === 'aspmmarilia@gmail.com'}
                   onClick={async () => {
+                    if (user?.email === 'aspmmarilia@gmail.com') return;
                     setLoading(true)
                     try {
                       const res = await fetch('/api/admin/generate-monthly-fees', { 
@@ -692,6 +694,7 @@ export default function AdminDashboard() {
                 >
                   Gerar Mensalidades do Mês
                 </Button>
+                {user?.email === 'aspmmarilia@gmail.com' && <p className="text-xs text-red-500 mt-2 text-center">Seu perfil apenas visualiza esta tela.</p>}
               </CardBody>
             </Card>
 
@@ -732,7 +735,18 @@ export default function AdminDashboard() {
                           <td className="px-6 py-3 font-bold">{formatCurrency(p.amount)}</td>
                           <td className="px-6 py-3 text-right">
                             {p.status === 'pending' && (
-                              <Button variant="outline" className="text-xs py-1" onClick={() => handleMarkAsPaid(p.id)} isLoading={loading}>Dar Baixa</Button>
+                              <Button 
+                                variant="outline" 
+                                className="text-xs py-1 disabled:opacity-50" 
+                                disabled={user?.email === 'aspmmarilia@gmail.com'}
+                                onClick={() => {
+                                  if (user?.email === 'aspmmarilia@gmail.com') return;
+                                  handleMarkAsPaid(p.id);
+                                }} 
+                                isLoading={loading}
+                              >
+                                Dar Baixa
+                              </Button>
                             )}
                           </td>
                         </tr>
