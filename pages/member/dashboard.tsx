@@ -22,6 +22,9 @@ export default function MemberDashboard() {
   // Checkout State
   const [isProcessingPayment, setIsProcessingPayment] = useState<string | null>(null)
   const [pixQrCode, setPixQrCode] = useState<string | null>(null)
+  
+  // Announcement Modal State
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null)
 
   useEffect(() => {
     if (member) {
@@ -63,7 +66,7 @@ export default function MemberDashboard() {
         .from('access_logs')
         .select('*')
         .eq('member_id', member?.id)
-        .order('entry_time', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(20)
       
       if (logsData) setAccessLogs(logsData)
@@ -263,19 +266,23 @@ export default function MemberDashboard() {
                   <p>Nenhum comunicado no momento.</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {announcements.map(ann => (
-                    <div key={ann.id} className="p-0 rounded-2xl bg-white border border-gray-200 shadow-sm relative overflow-hidden flex flex-col">
+                    <div 
+                      key={ann.id} 
+                      onClick={() => setSelectedAnnouncement(ann)}
+                      className="p-0 rounded-2xl bg-white border border-gray-200 shadow-sm relative overflow-hidden flex flex-col cursor-pointer hover:shadow-md transition-all hover:-translate-y-1"
+                    >
                       <div className="absolute top-0 left-0 w-1 h-full bg-brand-blue z-10"></div>
                       {ann.image_url && (
-                        <div className="w-full h-48 sm:h-64 bg-gray-100 overflow-hidden relative">
+                        <div className="w-full h-32 bg-gray-100 overflow-hidden relative border-b border-gray-100">
                            <img src={ann.image_url} alt="Capa do Comunicado" className="w-full h-full object-cover" />
                         </div>
                       )}
-                      <div className="p-6">
-                        <h4 className="font-bold text-xl text-gray-800 mb-3">{ann.title}</h4>
-                        <p className="text-gray-600 mb-4 whitespace-pre-wrap leading-relaxed">{ann.content}</p>
-                        <p className="text-xs text-gray-400 font-medium">{new Date(ann.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                      <div className="p-5 flex-1 flex flex-col">
+                        <h4 className="font-bold text-lg text-gray-800 mb-2 line-clamp-2">{ann.title}</h4>
+                        <p className="text-gray-500 mb-4 whitespace-pre-wrap leading-relaxed text-sm line-clamp-3 flex-1">{ann.content}</p>
+                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">{new Date(ann.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                       </div>
                     </div>
                   ))}
@@ -302,18 +309,14 @@ export default function MemberDashboard() {
               ) : (
                 <div className="space-y-4">
                   {accessLogs.map(log => (
-                    <div key={log.id} className="flex flex-col sm:flex-row justify-between p-4 border rounded-xl border-gray-100 bg-white">
-                       <div className="font-medium text-gray-800">
-                          Data: {new Date(log.entry_time).toLocaleDateString('pt-BR')}
-                       </div>
-                       <div className="flex gap-6 mt-2 sm:mt-0">
-                          <div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase">Entrada</p>
-                            <p className="font-bold text-green-600">{new Date(log.entry_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    <div key={log.id} className="flex justify-between items-center p-4 border rounded-xl border-gray-100 bg-white">
+                       <div className="font-medium text-gray-800 flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-500">
+                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                           </div>
                           <div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase">Saída</p>
-                            <p className="font-bold text-orange-500">{log.exit_time ? new Date(log.exit_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</p>
+                            <p className="text-sm font-bold text-gray-800">Acesso Liberado</p>
+                            <p className="text-xs text-gray-500">{new Date(log.created_at).toLocaleDateString('pt-BR')} às {new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                           </div>
                        </div>
                     </div>
@@ -322,6 +325,40 @@ export default function MemberDashboard() {
               )}
             </CardBody>
           </Card>
+        </div>
+      )}
+      
+      {/* Announcement Modal */}
+      {selectedAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setSelectedAnnouncement(null)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-full z-20 backdrop-blur-md transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            
+            <div className="overflow-y-auto overflow-x-hidden flex-1">
+              {selectedAnnouncement.image_url && (
+                <div className="w-full bg-gray-100 relative">
+                   <img src={selectedAnnouncement.image_url} alt="Capa do Comunicado" className="w-full h-auto max-h-80 object-contain" />
+                </div>
+              )}
+              <div className="p-6 md:p-8">
+                <p className="text-sm text-brand-blue font-bold tracking-wider uppercase mb-2">Comunicado Oficial</p>
+                <h3 className="font-bold text-2xl md:text-3xl text-gray-900 mb-6 leading-tight">{selectedAnnouncement.title}</h3>
+                <div className="prose prose-blue max-w-none text-gray-700 whitespace-pre-wrap text-base md:text-lg leading-relaxed">
+                  {selectedAnnouncement.content}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 md:px-8 border-t border-gray-100 bg-gray-50 flex justify-between items-center text-sm text-gray-500">
+               <span>Publicado em {new Date(selectedAnnouncement.created_at).toLocaleDateString('pt-BR')}</span>
+               <Button onClick={() => setSelectedAnnouncement(null)} className="px-6 py-2">Fechar</Button>
+            </div>
+          </div>
         </div>
       )}
     </Layout>
