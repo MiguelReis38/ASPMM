@@ -112,7 +112,17 @@ export default function Login() {
           </Button>
         </form>
 
-
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-500 mb-3">Acesse pelo celular de forma nativa:</p>
+          <a 
+            href="/aspmm.apk" 
+            download
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors w-full"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            Baixar Aplicativo (Android)
+          </a>
+        </div>
       </div>
     </div>
   )
