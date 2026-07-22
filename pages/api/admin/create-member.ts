@@ -4,7 +4,7 @@ import { getServiceSupabase } from '../../../lib/supabase'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { fullName, cpf, email, workplace, birthDate, category, address, phone, validityDate, primaryMemberCode, photoUrl, matricula, createdAt } = req.body
+  const { fullName, cpf, email, password, workplace, birthDate, category, address, phone, validityDate, primaryMemberCode, photoUrl, matricula, createdAt } = req.body
 
   if (!fullName || !workplace || !birthDate) {
     return res.status(400).json({ error: 'Preencha todos os campos obrigatórios.' })
@@ -18,9 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 1. Create the Auth User (if email is provided)
     let userId = null;
     if (email) {
-      // Create password from birthdate (YYYY-MM-DD -> DDMMYYYY)
+      // Create password from birthdate (YYYY-MM-DD -> DDMMYYYY) if not provided
       const [year, month, day] = birthDate.split('-');
-      const generatedPassword = `${day}${month}${year}`;
+      const generatedPassword = password ? password : `${day}${month}${year}`;
 
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: email,

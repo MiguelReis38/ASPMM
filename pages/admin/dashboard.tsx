@@ -44,8 +44,14 @@ export default function AdminDashboard() {
   
   // New Member Form State
   const [newMember, setNewMember] = useState({
-    fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', 
-    category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: '', createdAt: ''
+    full_name: '', cpf: '', email: '', password: '', workplace: '', birth_date: '', 
+    category: 'Titular',
+    address: '',
+    phone: '',
+    validity_date: '',
+    primaryMemberCode: '',
+    matricula: '',
+    created_at: ''
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   
@@ -199,7 +205,7 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error(result.error || 'Erro ao criar sócio')
       
       alert(`Sócio cadastrado com sucesso! Código gerado: ${result.member.member_code}`)
-      setNewMember({ fullName: '', cpf: '', email: '', password: '', workplace: '', birthDate: '', category: '', address: '', phone: '', validityDate: '', cardNumber: '', primaryMemberCode: '', matricula: '', createdAt: '' })
+      setNewMember({ full_name: '', cpf: '', email: '', password: '', workplace: '', birth_date: '', category: 'Titular', address: '', phone: '', validity_date: '', primaryMemberCode: '', matricula: '', created_at: '' })
       setPhotoFile(null)
       fetchMembers()
     } catch (err: any) {
@@ -472,7 +478,7 @@ export default function AdminDashboard() {
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
                   <tr className="bg-gray-50 text-gray-600 border-b">
-                    <th className="px-6 py-3 font-medium w-12 text-center">
+                    <th className="px-3 py-3 font-medium w-10 text-center">
                       <input 
                         type="checkbox" 
                         className="w-4 h-4 text-brand-blue border-gray-300 rounded focus:ring-brand-blue"
@@ -480,14 +486,14 @@ export default function AdminDashboard() {
                         onChange={toggleSelectAll}
                       />
                     </th>
-                    <th className="px-6 py-3 font-medium w-12">Foto</th>
-                    <th className="px-6 py-3 font-medium">Sócio (Titular)</th>
-                    <th className="px-6 py-3 font-medium">Nascimento</th>
-                    <th className="px-6 py-3 font-medium">Matrícula</th>
-                    <th className="px-6 py-3 font-medium">Código</th>
-                    <th className="px-6 py-3 font-medium">Situação / Categoria</th>
-                    <th className="px-6 py-3 font-medium">Dependentes</th>
-                    <th className="px-6 py-3 font-medium text-right">Ações</th>
+                    <th className="px-3 py-3 font-medium w-12 text-center">Foto</th>
+                    <th className="px-3 py-3 font-medium min-w-[200px]">Sócio (Titular)</th>
+                    <th className="px-3 py-3 font-medium whitespace-nowrap">Nascimento</th>
+                    <th className="px-3 py-3 font-medium whitespace-nowrap">Matrícula</th>
+                    <th className="px-3 py-3 font-medium whitespace-nowrap">Código</th>
+                    <th className="px-3 py-3 font-medium whitespace-nowrap">Situação / Categoria</th>
+                    <th className="px-3 py-3 font-medium whitespace-nowrap">Dependentes</th>
+                    <th className="px-3 py-3 font-medium text-right whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -496,7 +502,7 @@ export default function AdminDashboard() {
                     return (
                       <React.Fragment key={m.id}>
                         <tr className="border-b last:border-0 hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-3 py-3 text-center">
                             <input 
                               type="checkbox" 
                               className="w-4 h-4 text-brand-blue border-gray-300 rounded focus:ring-brand-blue"
@@ -504,44 +510,51 @@ export default function AdminDashboard() {
                               onChange={() => toggleSelectMember(m.id)}
                             />
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-3 flex justify-center items-center">
                             {m.photo_url ? (
-                              <img src={m.photo_url} alt="Foto" className="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-200" />
+                              <img src={m.photo_url} alt="Foto" className="w-9 h-9 rounded-full object-cover shadow-sm border border-gray-200" />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">Sem Foto</div>
+                              <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-[10px]">Foto</div>
                             )}
                           </td>
-                          <td className="px-6 py-4">
-                            <p className="font-medium text-gray-800">{m.full_name}</p>
-                            <p className="text-xs text-gray-500">CPF: {m.cpf}</p>
+                          <td className="px-3 py-3">
+                            <p className="font-medium text-gray-800 leading-tight">{m.full_name}</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">CPF: {m.cpf || '-'}</p>
                           </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
+                          <td className="px-3 py-3 text-gray-600 text-xs whitespace-nowrap">
                             {m.birth_date ? new Date(m.birth_date).toLocaleDateString('pt-BR') : '-'}
                           </td>
-                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">
+                          <td className="px-3 py-3 text-gray-600 font-mono text-xs whitespace-nowrap">
                             {m.matricula || '-'}
                           </td>
-                          <td className="px-6 py-4">
-                            <span className="font-mono bg-gray-100 px-2 py-1 rounded text-gray-700 font-bold">{m.member_code}</span>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-bold text-xs">{m.member_code}</span>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded-full text-[10px] uppercase font-bold bg-brand-blueLight text-brand-blueDark`}>
-                              {m.category || 'Titular'}
-                            </span>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="flex flex-col gap-1 items-start">
+                               <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase font-bold ${m.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                 {m.status === 'active' ? 'Ativo' : 'Inativo'}
+                               </span>
+                               <span className="px-2 py-0.5 rounded-full text-[9px] uppercase font-bold bg-brand-blueLight text-brand-blueDark">
+                                 {m.category || 'Titular'}
+                               </span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-3 whitespace-nowrap">
                             {deps.length > 0 ? (
-                              <button onClick={() => toggleExpandMember(m.id)} className="font-bold text-brand-blue hover:underline flex items-center gap-1">
-                                {deps.length} dependentes {expandedMembers.includes(m.id) ? '▲' : '▼'}
+                              <button onClick={() => toggleExpandMember(m.id)} className="font-bold text-brand-blue hover:underline flex items-center gap-1 text-xs">
+                                {deps.length} dep. {expandedMembers.includes(m.id) ? '▲' : '▼'}
                               </button>
                             ) : (
-                              <span className="font-bold text-gray-400">0 dependentes</span>
+                              <span className="font-bold text-gray-400 text-xs">0 dep.</span>
                             )}
                           </td>
-                          <td className="px-6 py-4 text-right flex justify-end gap-2">
-                            <Button variant="outline" className="text-xs py-1 px-3 border-brand-blue text-brand-blue" onClick={() => setPreviewingCardMember(m)}>Ver Carteirinha</Button>
-                            <Button variant="outline" className="text-xs py-1 px-3" onClick={() => setEditingMember(m)}>Editar</Button>
-                            <Button variant="danger" className="text-xs py-1 px-3 bg-red-100 text-red-600 hover:bg-red-200 shadow-none border-none" onClick={() => handleDeleteMember(m.id, m.full_name)}>Excluir</Button>
+                          <td className="px-3 py-3 text-right whitespace-nowrap">
+                            <div className="flex justify-end gap-1">
+                               <Button variant="outline" className="text-[11px] py-1 px-2 border-brand-blue text-brand-blue" onClick={() => setPreviewingCardMember(m)}>Ver</Button>
+                               <Button variant="outline" className="text-[11px] py-1 px-2" onClick={() => setEditingMember(m)}>Editar</Button>
+                               <Button variant="danger" className="text-[11px] py-1 px-2 bg-red-100 text-red-600 hover:bg-red-200 shadow-none border-none" onClick={() => handleDeleteMember(m.id, m.full_name)}>Excluir</Button>
+                            </div>
                           </td>
                         </tr>
                         {deps.length > 0 && expandedMembers.includes(m.id) && (
@@ -591,22 +604,23 @@ export default function AdminDashboard() {
             <CardBody>
               <form onSubmit={handleCreateMember} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input label="Nome Associado" name="fullName" value={newMember.fullName} onChange={handleNewMemberChange} required />
-                  <Input label="E-mail (Para Login)" type="email" name="email" value={newMember.email} onChange={handleNewMemberChange} required />
+                  <Input label="Nome Associado" name="full_name" value={newMember.full_name} onChange={handleNewMemberChange} required />
+                  <Input label="E-mail (Para Login)" type="email" name="email" value={newMember.email} onChange={handleNewMemberChange} placeholder="Opcional" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input label="Senha (Para Login)" type="text" name="password" value={newMember.password || ''} onChange={handleNewMemberChange} placeholder="Padrão: DDMMAAAA" />
+                  <Input label="Endereço" name="address" value={newMember.address} onChange={handleNewMemberChange} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Situação</label>
-                    <select name="category" value={newMember.category} onChange={handleNewMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none disabled:bg-gray-100" disabled={!newMember.workplace}>
+                    <select name="category" value={newMember.category} onChange={handleNewMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none disabled:bg-gray-100">
                       <option value="">Escolha</option>
                       {getSituacaoOptions(newMember.workplace).map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                   </div>
-                  <Input label="Endereço" name="address" value={newMember.address} onChange={handleNewMemberChange} required />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Órgão</label>
                     <select name="workplace" value={newMember.workplace} onChange={handleNewMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none">
@@ -614,26 +628,31 @@ export default function AdminDashboard() {
                       {ORGAO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
                   </div>
-                  <Input label="Data de Validade" type="date" name="validityDate" value={newMember.validityDate} onChange={handleNewMemberChange} />
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                   <Input label="Data de Nascimento (Usada como Senha)" type="date" name="birthDate" value={newMember.birthDate} onChange={handleNewMemberChange} required />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input label="Telefone" name="phone" placeholder="0__ - ___" value={newMember.phone} onChange={handleNewMemberChange} />
+                  <Input type="date" label="Data de Nascimento" name="birth_date" value={newMember.birth_date} onChange={handleNewMemberChange} required />
+                  <Input label="Data de Validade" type="date" name="validity_date" value={newMember.validity_date} onChange={handleNewMemberChange} />
+                </div>
+
+                {(newMember.category || '').toLowerCase().includes('dep') && (
+                  <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva ou 123456" />
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input label="Matrícula (Holerite/Prefeitura)" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Ex: 12345-6" />
+                  <Input label="CPF (Apenas números)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} placeholder="Ex: 12345678900" />
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input label="Telefone" name="phone" placeholder="14999999999" value={newMember.phone} onChange={handleNewMemberChange} />
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Foto</label>
                     <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className="w-full text-sm border p-1 rounded bg-gray-50" />
                   </div>
                 </div>
-                {(newMember.category?.toLowerCase().includes('dep') || newMember.category === 'Amarela Carterinha' || newMember.category === 'Verde Carterinha') && (
-                  <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva ou 123456" required />
-                )}
-                <Input label="Matrícula" name="matricula" value={newMember.matricula} onChange={handleNewMemberChange} placeholder="Matrícula Interna" />
-                <Input label="CPF (Sistema Interno)" name="cpf" value={newMember.cpf} onChange={handleNewMemberChange} />
-                <Input label="Data de Cadastro" type="date" name="createdAt" value={newMember.createdAt} onChange={handleNewMemberChange} />
+
+                <Input label="Data de Cadastro" type="date" name="created_at" value={newMember.created_at} onChange={handleNewMemberChange} />
 
                 <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white" isLoading={loading}>+ Salvar Associado</Button>
               </form>

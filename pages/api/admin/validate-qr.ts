@@ -50,29 +50,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 4. Salvar log de acesso
     // Verifica se há uma entrada sem saída hoje
-    const { data: openLog } = await supabaseAdmin
+    const { data: openLog, error: openLogError } = await supabaseAdmin
       .from('access_logs')
       .select('*')
       .eq('member_id', member.id)
       .is('exit_time', null)
       .order('entry_time', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
+
+    if (openLogError) {
+       console.error("Erro ao buscar logs de acesso:", openLogError)
+       // Don't fail the whole validation just because log failed, but we should log it
+    }
 
     if (openLog) {
       // Registrar saída
-      await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from('access_logs')
         .update({ exit_time: new Date().toISOString() })
         .eq('id', openLog.id)
+        
+      if (updateError) console.error("Erro ao registrar saída:", updateError)
     } else {
       // Registrar entrada
-      await supabaseAdmin
+      const { error: insertError } = await supabaseAdmin
         .from('access_logs')
         .insert({ 
           member_id: member.id, 
           entry_time: new Date().toISOString() 
         })
+        
+      if (insertError) console.error("Erro ao registrar entrada:", insertError)
     }
 
     // Se passou por tudo, está liberado
