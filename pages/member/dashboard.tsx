@@ -142,15 +142,9 @@ export default function MemberDashboard() {
 
       {/* Tab Content: Carteirinha */}
       {activeTab === 'carteirinha' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="max-w-md mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
           <section className="flex flex-col items-center">
             <DigitalCard member={member} />
-          </section>
-          
-          <section className="flex flex-col items-center justify-center bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Acesso ao Clube</h3>
-            <p className="text-sm text-gray-500 text-center mb-6 max-w-xs">Apresente este QR Code na portaria para registrar sua entrada.</p>
-            <QRCodeDisplay memberId={member.id} />
           </section>
         </div>
       )}
@@ -227,51 +221,31 @@ export default function MemberDashboard() {
       {/* Tab Content: Dependentes */}
       {activeTab === 'dependentes' && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <Card>
-            <CardHeader className="flex items-center gap-2">
-              <Users className="text-brand-blue" />
-              <h3 className="font-semibold text-lg">Meus Dependentes</h3>
-            </CardHeader>
-            <CardBody>
-              {dependents.length === 0 ? (
+          {dependents.length === 0 ? (
+            <Card>
+              <CardHeader className="flex items-center gap-2">
+                <Users className="text-brand-blue" />
+                <h3 className="font-semibold text-lg">Meus Dependentes</h3>
+              </CardHeader>
+              <CardBody>
                 <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                   <p>Nenhum dependente cadastrado até o momento.</p>
                   <p className="text-sm mt-2">O seu cadastro não possui dependentes vinculados. Para adicionar dependentes, contate a administração do clube.</p>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {dependents.map(dep => {
-                    const isExempt = isDependentExempt(dep.birth_date, dep.is_pcd)
-                    return (
-                      <div key={dep.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border rounded-xl border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-4 mb-3 sm:mb-0">
-                           {dep.photo_url ? (
-                             <img src={dep.photo_url} alt="Foto" className="w-12 h-12 rounded-full object-cover shadow-sm border border-gray-200" />
-                           ) : (
-                             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                               <Users size={20} />
-                             </div>
-                           )}
-                          <div>
-                            <p className="font-bold text-gray-800">{dep.full_name}</p>
-                            <p className="text-xs text-gray-500 font-mono mt-0.5">CÓDIGO: {dep.member_code}</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 items-center w-full sm:w-auto justify-end">
-                          <span className={`text-[10px] uppercase font-bold px-3 py-1 rounded-full ${dep.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {dep.status === 'active' ? 'Ativo' : 'Inativo'}
-                          </span>
-                          <span className="text-[10px] uppercase font-bold px-3 py-1 rounded-full bg-brand-blueLight text-brand-blueDark border border-brand-blue/20">
-                            {dep.category}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </CardBody>
-          </Card>
+              </CardBody>
+            </Card>
+          ) : (
+            <div>
+              <h3 className="font-semibold text-lg text-gray-800 mb-6 flex items-center gap-2">
+                <Users className="text-brand-blue" /> Carteirinhas dos Dependentes
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {dependents.map(dep => (
+                  <DigitalCard key={dep.id} member={dep} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

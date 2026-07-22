@@ -795,7 +795,7 @@ export default function AdminDashboard() {
               <form onSubmit={handlePostAnnouncement} className="space-y-4">
                 <Input label="Título do Comunicado" value={announcementTitle} onChange={(e) => setAnnouncementTitle(e.target.value)} required />
                 <textarea 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none min-h-[150px]"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none min-h-[300px]"
                   placeholder="Sua mensagem principal..."
                   value={announcementContent}
                   onChange={(e) => setAnnouncementContent(e.target.value)}

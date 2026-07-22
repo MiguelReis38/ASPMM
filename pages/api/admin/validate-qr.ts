@@ -48,6 +48,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ allowed: false, reason: 'DEBT', message: 'Mensalidade em Atraso', member, debts: pendingPayments })
     }
 
+    // 4. Salvar log de acesso
+    // Verifica se há uma entrada sem saída hoje
+    const { data: openLog } = await supabaseAdmin
+      .from('access_logs')
+      .select('*')
+      .eq('member_id', member.id)
+      .is('exit_time', null)
+      .order('entry_time', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (openLog) {
+      // Registrar saída
+      await supabaseAdmin
+        .from('access_logs')
+        .update({ exit_time: new Date().toISOString() })
+        .eq('id', openLog.id)
+    } else {
+      // Registrar entrada
+      await supabaseAdmin
+        .from('access_logs')
+        .insert({ 
+          member_id: member.id, 
+          entry_time: new Date().toISOString() 
+        })
+    }
+
     // Se passou por tudo, está liberado
     return res.status(200).json({ allowed: true, message: 'LIBERADO', member })
 
