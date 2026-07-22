@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'ASPMM',
   webDir: 'public',
   server: {
-    url: 'https://aspmm.netlify.app',
+    url: 'https://aspmm.vercel.app',
     cleartext: true
   }
 };
