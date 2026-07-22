@@ -35,30 +35,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ error: 'Senha incorreta. A senha padrão é sua data de nascimento (DDMMAAAA).' })
       }
 
-      // Generate a dummy email
-      const generatedEmail = `${member.member_code}@aspmm.com.br`
-
-      // Create the Auth User
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: generatedEmail,
-        password: password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: member.full_name
-        }
+      // Instead of creating a dummy email, we tell the frontend to show the setup screen
+      return res.status(200).json({ 
+        requireSetup: true, 
+        memberId: member.id, 
+        memberCode: member.member_code,
+        fullName: member.full_name 
       })
-
-      if (authError || !authData.user) {
-        throw new Error('Falha ao gerar credenciais de segurança para este código.')
-      }
-
-      // Update the member record with the new user_id
-      await supabaseAdmin
-        .from('members')
-        .update({ user_id: authData.user.id })
-        .eq('id', member.id)
-
-      return res.status(200).json({ email: generatedEmail })
     } else {
       // Member already has an Auth Account, fetch their email
       const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(member.user_id)

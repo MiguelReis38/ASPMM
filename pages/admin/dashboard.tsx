@@ -242,6 +242,8 @@ export default function AdminDashboard() {
         primaryMemberCode: editingMember.primaryMemberCode || '',
         matricula: editingMember.matricula,
         createdAt: editingMember.created_at ? editingMember.created_at.split('T')[0] : '',
+        email: editingMember.email || '',
+        password: editingMember.password || '',
         photoUrl: photoUrl
       }
 
@@ -480,6 +482,7 @@ export default function AdminDashboard() {
                     </th>
                     <th className="px-6 py-3 font-medium w-12">Foto</th>
                     <th className="px-6 py-3 font-medium">Sócio (Titular)</th>
+                    <th className="px-6 py-3 font-medium">Nascimento</th>
                     <th className="px-6 py-3 font-medium">Matrícula</th>
                     <th className="px-6 py-3 font-medium">Código</th>
                     <th className="px-6 py-3 font-medium">Situação / Categoria</th>
@@ -511,6 +514,9 @@ export default function AdminDashboard() {
                           <td className="px-6 py-4">
                             <p className="font-medium text-gray-800">{m.full_name}</p>
                             <p className="text-xs text-gray-500">CPF: {m.cpf}</p>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 text-sm">
+                            {m.birth_date ? new Date(m.birth_date).toLocaleDateString('pt-BR') : '-'}
                           </td>
                           <td className="px-6 py-4 text-gray-600 font-mono text-sm">
                             {m.matricula || '-'}
@@ -905,9 +911,9 @@ export default function AdminDashboard() {
                   <Input type="date" label="Data de Cadastro" name="created_at" value={editingMember.created_at ? editingMember.created_at.split('T')[0] : ''} onChange={handleEditMemberChange} />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Órgão</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Situação / Empresa</label>
                     <select name="workplace" value={editingMember.workplace || ''} onChange={handleEditMemberChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-blue outline-none">
                       <option value="">Escolha</option>
                       {ORGAO_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -915,16 +921,27 @@ export default function AdminDashboard() {
                   </div>
                   <Input label="Data de Validade" type="date" name="validity_date" value={editingMember.validity_date || ''} onChange={handleEditMemberChange} />
                 </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <Input label="E-mail de Login" type="email" name="email" value={editingMember.email || ''} onChange={handleEditMemberChange} placeholder="Atualizar e-mail (opcional)" />
+                  <Input label="Nova Senha" type="text" name="password" value={editingMember.password || ''} onChange={handleEditMemberChange} placeholder="Deixe em branco para não alterar" />
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(editingMember.category || '').toLowerCase().includes('dep') && (
+                   <div className="grid grid-cols-1 gap-4">
+                     <Input label="Código do Associado Titular" name="primaryMemberCode" value={editingMember.primaryMemberCode || ''} onChange={handleEditMemberChange} placeholder="Obrigatório para dependentes" />
+                   </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                   <Input label="Telefone" name="phone" value={editingMember.phone || ''} onChange={handleEditMemberChange} />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Substituir Foto</label>
-                    <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className="w-full text-sm border p-1 rounded bg-gray-50" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Alterar Foto do Associado</label>
+                    <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-blueLight file:text-brand-blue hover:file:bg-brand-blue/20" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input label="CPF" name="cpf" value={editingMember.cpf || ''} onChange={handleEditMemberChange} />
                   <Input label="Matrícula" name="matricula" value={editingMember.matricula || ''} onChange={handleEditMemberChange} />
                 </div>
