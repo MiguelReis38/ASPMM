@@ -124,24 +124,9 @@ export const AccessControl = () => {
       let actionText = '';
 
       if (isGranted) {
-        const { data: openLog } = await supabase
-          .from('access_logs')
-          .select('*')
-          .eq('member_id', member.id)
-          .is('exit_time', null)
-          .order('entry_time', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (openLog) {
-          await supabase.from('access_logs').update({ exit_time: new Date().toISOString() }).eq('id', openLog.id)
-          reason = 'Saída registrada com sucesso.';
-          actionText = 'SAÍDA';
-        } else {
-          await supabase.from('access_logs').insert({ member_id: member.id })
-          reason = 'Entrada registrada com sucesso.';
-          actionText = 'ENTRADA';
-        }
+        await supabase.from('access_logs').insert({ member_id: member.id, status: 'success', reason: 'LIBERADO' })
+        reason = 'Acesso Liberado';
+        actionText = 'LIBERADO';
       }
 
       setScanResult({
@@ -279,12 +264,8 @@ export const AccessControl = () => {
                       </div>
                       <div className="text-sm bg-white border px-3 py-1.5 rounded-lg flex gap-4">
                         <div className="flex flex-col">
-                           <span className="text-[10px] text-gray-400 font-bold uppercase">Entrada</span>
-                           <span className="font-medium text-green-600">{new Date(log.entry_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                        <div className="flex flex-col">
-                           <span className="text-[10px] text-gray-400 font-bold uppercase">Saída</span>
-                           <span className="font-medium text-orange-500">{log.exit_time ? new Date(log.exit_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--'}</span>
+                           <span className="text-[10px] text-gray-400 font-bold uppercase">Acesso</span>
+                           <span className="font-medium text-green-600">{new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
                       </div>
                     </div>
