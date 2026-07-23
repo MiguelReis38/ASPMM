@@ -26,11 +26,25 @@ export default function MemberDashboard() {
   // Announcement Modal State
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null)
 
+  // Access Logs Date Filter State
+  const [logStartDate, setLogStartDate] = useState(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - 1)
+    return d.toISOString().split('T')[0]
+  })
+  const [logEndDate, setLogEndDate] = useState(() => new Date().toISOString().split('T')[0])
+
   useEffect(() => {
     if (member) {
       fetchDashboardData()
     }
   }, [member])
+
+  useEffect(() => {
+    if (member) {
+      fetchAccessLogs()
+    }
+  }, [member, logStartDate, logEndDate])
 
   const fetchDashboardData = async () => {
     setLoading(true)
@@ -58,10 +72,17 @@ export default function MemberDashboard() {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(5)
-      
       if (annData) setAnnouncements(annData)
 
-      // Fetch Access Logs for member and their dependents
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchAccessLogs = async () => {
+    try {
       const { data: depsDataForLogs } = await supabase
         .from('members')
         .select('id')
@@ -76,15 +97,13 @@ export default function MemberDashboard() {
         .from('access_logs')
         .select('*, members!inner(full_name)')
         .in('member_id', memberIds)
+        .gte('created_at', `${logStartDate}T00:00:00.000Z`)
+        .lte('created_at', `${logEndDate}T23:59:59.999Z`)
         .order('created_at', { ascending: false })
-        .limit(20)
       
       if (logsData) setAccessLogs(logsData)
-
     } catch (error) {
       console.error(error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -307,14 +326,31 @@ export default function MemberDashboard() {
       {activeTab === 'acessos' && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <Card>
-            <CardHeader className="flex items-center gap-2">
-              <Users className="text-brand-blue" />
-              <h3 className="font-semibold text-lg">Meu Histórico de Acessos</h3>
+            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Users className="text-brand-blue" />
+                <h3 className="font-semibold text-lg">Meu Histórico de Acessos</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input 
+                  type="date" 
+                  value={logStartDate} 
+                  onChange={(e) => setLogStartDate(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-gray-50 flex-1 sm:flex-none"
+                />
+                <span className="text-gray-500 text-sm">até</span>
+                <input 
+                  type="date" 
+                  value={logEndDate} 
+                  onChange={(e) => setLogEndDate(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-gray-50 flex-1 sm:flex-none"
+                />
+              </div>
             </CardHeader>
             <CardBody>
               {accessLogs.length === 0 ? (
                 <div className="text-center py-10 text-gray-500">
-                  <p>Você não possui registros de acesso recentes.</p>
+                  <p>Nenhum registro de acesso encontrado neste período.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
