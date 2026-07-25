@@ -177,7 +177,16 @@ export default function AdminDashboard() {
 
   const handleNewMemberChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setNewMember(prev => ({ ...prev, [name]: value }))
+    setNewMember(prev => {
+      const updated = { ...prev, [name]: value }
+      if (name === 'primaryMemberCode') {
+        const primary = members.find(m => m.full_name?.toLowerCase() === value.toLowerCase() || m.member_code === value)
+        if (primary && primary.matricula) {
+          updated.matricula = primary.matricula
+        }
+      }
+      return updated
+    })
   }
 
   const handleCreateMember = async (e: React.FormEvent) => {
@@ -231,7 +240,16 @@ export default function AdminDashboard() {
 
   const handleEditMemberChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setEditingMember((prev: any) => ({ ...prev, [name]: value }))
+    setEditingMember((prev: any) => {
+      const updated = { ...prev, [name]: value }
+      if (name === 'primaryMemberCode') {
+        const primary = members.find(m => m.full_name?.toLowerCase() === value.toLowerCase() || m.member_code === value)
+        if (primary && primary.matricula) {
+          updated.matricula = primary.matricula
+        }
+      }
+      return updated
+    })
   }
 
   const handleSaveEditMember = async (e: React.FormEvent) => {
