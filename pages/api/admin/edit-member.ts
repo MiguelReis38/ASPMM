@@ -4,7 +4,7 @@ import { getServiceSupabase } from '../../../lib/supabase'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { id, fullName, cpf, workplace, birthDate, category, address, phone, validityDate, cardNumber, primaryMemberCode, photoUrl, matricula, created_at, email, password } = req.body
+  const { id, fullName, cpf, workplace, birthDate, category, address, phone, validityDate, cardNumber, primaryMemberCode, photoUrl, matricula, createdAt, email, password } = req.body
 
   try {
     const supabaseAdmin = getServiceSupabase()
@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (photoUrl) updates.photo_url = photoUrl;
-    if (created_at) updates.created_at = new Date(created_at).toISOString();
+    if (createdAt) updates.created_at = new Date(createdAt).toISOString();
 
     // UPDATE AUTH USER
     if (email && currentMember.user_id) {

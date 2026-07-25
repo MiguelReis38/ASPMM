@@ -194,8 +194,22 @@ export default function AdminDashboard() {
         photoUrl = publicUrl
       }
 
-      const payload = { ...newMember, photoUrl }
-
+      const payload = { 
+        fullName: newMember.full_name,
+        cpf: newMember.cpf,
+        email: newMember.email,
+        password: newMember.password,
+        workplace: newMember.workplace,
+        birthDate: newMember.birth_date,
+        category: newMember.category,
+        address: newMember.address,
+        phone: newMember.phone,
+        validityDate: newMember.validity_date,
+        primaryMemberCode: newMember.primaryMemberCode,
+        matricula: newMember.matricula,
+        createdAt: newMember.created_at,
+        photoUrl 
+      }
       const response = await fetch('/api/admin/create-member', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
