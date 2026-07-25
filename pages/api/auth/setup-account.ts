@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 3. Update the member record with the new user_id
     const { error: updateError } = await supabaseAdmin
       .from('members')
-      .update({ user_id: authData.user.id })
+      .update({ user_id: authData.user.id, email: email.trim() })
       .eq('id', member.id)
       
     if (updateError) {

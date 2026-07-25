@@ -82,6 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         is_dependent: isDependentCategory,
         primary_member_id: primaryMemberId,
         matricula: matricula || null,
+        email: email ? email.trim() : null,
         created_at: createdAt ? new Date(createdAt).toISOString() : undefined,
         status: 'active',
         role: 'member'

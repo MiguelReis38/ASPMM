@@ -51,6 +51,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       primary_member_id: primaryMemberId,
       matricula: matricula || null
     }
+    
+    if (email) updates.email = email.trim();
 
     if (photoUrl) updates.photo_url = photoUrl;
     if (createdAt) updates.created_at = new Date(createdAt).toISOString();
