@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 2. Handle Dependent Linkage
     let primaryMemberId = null;
-    const isDependentCategory = (category || '').toLowerCase().includes('dep');
+    const isDependentCategory = (category || '').toLowerCase().includes('dep') || (category || '').toLowerCase().includes('verde');
     if (isDependentCategory && primaryMemberCode) {
       const { data: primaryData, error: primaryError } = await supabaseAdmin
         .from('members')

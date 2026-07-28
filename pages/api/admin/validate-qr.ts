@@ -33,35 +33,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Busca pagamentos 'pending' com data de vencimento no passado
     const today = new Date().toISOString().split('T')[0]
     
-    const { data: pendingPayments, error: paymentsError } = await supabaseAdmin
-      .from('payments')
-      .select('*')
-      .eq('member_id', member.id)
-      .eq('status', 'pending')
-      .lt('due_date', today)
+    const requiresPayment = (member.category || '').toLowerCase().includes('amarela') || (member.category || '').toLowerCase().includes('verde');
 
-    if (paymentsError) {
-      throw paymentsError
-    }
+    if (requiresPayment) {
+      const { data: pendingPayments, error: paymentsError } = await supabaseAdmin
+        .from('payments')
+        .select('*')
+        .eq('member_id', member.id)
+        .eq('status', 'pending')
+        .lt('due_date', today)
 
-    if (pendingPayments && pendingPayments.length > 0) {
-      return res.status(200).json({ allowed: false, reason: 'DEBT', message: 'Mensalidade em Atraso', member, debts: pendingPayments })
+      if (paymentsError) {
+        throw paymentsError
+      }
+
+      if (pendingPayments && pendingPayments.length > 0) {
+        return res.status(200).json({ allowed: false, reason: 'DEBT', message: 'Mensalidade em Atraso', member, debts: pendingPayments })
+      }
     }
 
     // 4. Salvar log de acesso
-    // Como a tabela não tem exit_time, vamos apenas registrar cada bipe (scan) como uma nova entrada.
+    // 4. Salvar log de acesso com ENTRADA/SAÍDA
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const { data: lastLog } = await supabaseAdmin
+       .from('access_logs')
+       .select('reason')
+       .eq('member_id', member.id)
+       .gte('created_at', startOfDay.toISOString())
+       .order('created_at', { ascending: false })
+       .limit(1)
+       .single();
+
+    let actionText = 'ENTRADA';
+    if (lastLog && lastLog.reason === 'ENTRADA') {
+       actionText = 'SAÍDA';
+    }
+
     const { error: insertError } = await supabaseAdmin
       .from('access_logs')
       .insert({ 
         member_id: member.id, 
         status: 'success',
-        reason: 'LIBERADO'
+        reason: actionText
       })
       
     if (insertError) console.error("Erro ao registrar acesso:", insertError)
 
     // Se passou por tudo, está liberado
-    return res.status(200).json({ allowed: true, message: 'LIBERADO', member })
+    return res.status(200).json({ allowed: true, message: `LIBERADO (${actionText})`, member, actionText })
 
   } catch (error: any) {
     res.status(500).json({ error: error.message || 'Erro interno ao validar' })

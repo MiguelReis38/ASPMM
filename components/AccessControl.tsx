@@ -88,51 +88,22 @@ export const AccessControl = () => {
     }
 
     try {
-      const { data: member, error } = await supabase
-        .from('members')
-        .select('*')
-        .eq('member_code', memberCode)
-        .single();
+      const response = await fetch('/api/admin/validate-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: memberCode })
+      });
+      const result = await response.json();
 
-      if (error || !member) {
-        setScanResult({ status: 'error', message: 'Associado não encontrado no sistema.' });
-        return;
-      }
-
-      let isGranted = true;
-      let reason = '';
-
-      if (member.status !== 'active') {
-        isGranted = false;
-        reason = 'Associado Inativo.';
-      } else if (member.validity_date && new Date(member.validity_date) < new Date()) {
-        isGranted = false;
-        reason = 'Carteirinha Vencida.';
-      }
-
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('member_id', member.id)
-        .eq('status', 'pending');
-        
-      if (payments && payments.length > 0) {
-        isGranted = false;
-        reason = 'Acesso Negado: Mensalidade Pendente.';
-      }
-
-      let actionText = '';
-
-      if (isGranted) {
-        await supabase.from('access_logs').insert({ member_id: member.id, status: 'success', reason: 'LIBERADO' })
-        reason = 'Acesso Liberado';
-        actionText = 'LIBERADO';
+      if (!response.ok) {
+         setScanResult({ status: 'error', message: result.message || result.error || 'Erro ao validar' });
+         return;
       }
 
       setScanResult({
-        status: isGranted ? 'success' : 'error',
-        message: reason,
-        member: { ...member, action: actionText }
+        status: result.allowed ? 'success' : 'error',
+        message: result.message || result.reason,
+        member: { ...result.member, action: result.actionText }
       });
 
       fetchLogs(); 
@@ -264,8 +235,8 @@ export const AccessControl = () => {
                       </div>
                       <div className="text-sm bg-white border px-3 py-1.5 rounded-lg flex gap-4">
                         <div className="flex flex-col">
-                           <span className="text-[10px] text-gray-400 font-bold uppercase">Acesso</span>
-                           <span className="font-medium text-green-600">{new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                           <span className="text-[10px] text-gray-400 font-bold uppercase">{log.reason === 'SAÍDA' ? 'Saída' : 'Entrada'}</span>
+                           <span className={`font-medium ${log.reason === 'SAÍDA' ? 'text-red-500' : 'text-green-600'}`}>{new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
                       </div>
                     </div>

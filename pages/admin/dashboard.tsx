@@ -667,7 +667,7 @@ export default function AdminDashboard() {
                   <Input label="Data de Validade" type="date" name="validity_date" value={newMember.validity_date} onChange={handleNewMemberChange} />
                 </div>
 
-                {(newMember.category || '').toLowerCase().includes('dep') && (
+                {((newMember.category || '').toLowerCase().includes('dep') || (newMember.category || '').toLowerCase().includes('verde')) && (
                   <Input label="Titular (Nome ou Código)" name="primaryMemberCode" value={newMember.primaryMemberCode} onChange={handleNewMemberChange} placeholder="Ex: João da Silva ou 123456" />
                 )}
 
@@ -978,7 +978,7 @@ export default function AdminDashboard() {
                   <Input label="Nova Senha" type="text" name="password" value={editingMember.password || ''} onChange={handleEditMemberChange} placeholder="Deixe em branco para não alterar" />
                 </div>
 
-                {(editingMember.category || '').toLowerCase().includes('dep') && (
+                {((editingMember.category || '').toLowerCase().includes('dep') || (editingMember.category || '').toLowerCase().includes('verde')) && (
                    <div className="grid grid-cols-1 gap-4">
                      <Input label="Código do Associado Titular" name="primaryMemberCode" value={editingMember.primaryMemberCode || ''} onChange={handleEditMemberChange} placeholder="Obrigatório para dependentes" />
                    </div>
