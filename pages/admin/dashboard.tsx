@@ -925,26 +925,6 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl p-6 mt-10 mb-10">
             <h3 className="text-xl font-bold mb-4">Editar Associado</h3>
             <form onSubmit={handleSaveEditMember} className="space-y-4">
-              <Input label="Nome" name="full_name" value={editingMember.full_name || ''} onChange={handleEditMemberChange} required />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input label="CPF" name="cpf" value={editingMember.cpf || ''} onChange={handleEditMemberChange} />
-                <Input label="Matrícula" name="matricula" value={editingMember.matricula || ''} onChange={handleEditMemberChange} />
-              </div>
-              <div className="flex gap-4 pt-4 border-t">
-                <Button type="submit" className="flex-1" isLoading={loading}>Salvar Alterações</Button>
-                <Button variant="outline" onClick={() => { setEditingMember(null); setPhotoFile(null) }} className="flex-1">Cancelar</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {editingMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl p-6 mt-10 mb-10">
-            <h3 className="text-xl font-bold mb-4">Editar Associado</h3>
-            <form onSubmit={handleSaveEditMember} className="space-y-4">
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Nome Associado" name="full_name" value={editingMember.full_name || ''} onChange={handleEditMemberChange} required />
                   <div>

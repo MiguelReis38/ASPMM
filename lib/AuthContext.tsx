@@ -1,6 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { Session, User } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+
+export interface AuthUser {
+  id: string
+  email?: string
+  user_metadata?: Record<string, any>
+}
+
+export interface AuthSession {
+  user: AuthUser
+  access_token?: string
+}
 
 interface MemberData {
   id: string
@@ -16,8 +26,8 @@ interface MemberData {
 }
 
 type AuthContextType = {
-  session: Session | null
-  user: User | null
+  session: AuthSession | null
+  user: AuthUser | null
   member: MemberData | null
   loading: boolean
 }
@@ -25,8 +35,8 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({ session: null, user: null, member: null, loading: true })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null)
-  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [member, setMember] = useState<MemberData | null>(null)
   const [loading, setLoading] = useState(true)
 

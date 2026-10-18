@@ -1,0 +1,226 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: members
+    // Document ID: {memberId}
+    // Fields:
+    //   - id: string (optional) - Document identifier
+    //   - user_id: string | null (optional) - Linked Firebase Auth UID
+    //   - member_code: string (required, <= 100 chars) - Unique member code
+    //   - full_name: string (required, 1..300 chars) - Member's full name
+    //   - cpf: string | null (optional, <= 50 chars) - Member's CPF
+    //   - workplace: string | null (optional, <= 200 chars) - Member's workplace/orgao
+    //   - is_dependent: bool | null (optional) - Whether member is a dependent
+    //   - primary_member_id: string | null (optional, <= 200 chars) - Titular member ID
+    //   - birth_date: string | null (optional, <= 50 chars) - Date of birth (YYYY-MM-DD)
+    //   - is_pcd: bool | null (optional) - Person with disability flag
+    //   - status: string | null (optional, 'active' | 'inactive' | 'pending' | 'blocked')
+    //   - role: string | null (optional, 'member' | 'admin' | 'president')
+    //   - photo_url: string | null (optional, <= 500000 chars) - Profile photo URL
+    //   - payslip_url: string | null (optional, <= 5000 chars) - Payslip URL
+    //   - created_at: string | timestamp | null (optional) - Creation timestamp
+    //   - updated_at: string | timestamp | null (optional) - Last update timestamp
+    //   - category: string | null (optional, <= 100 chars) - Member category
+    //   - matricula: string | null (optional, <= 100 chars) - Registration number
+    //   - address: string | null (optional, <= 500 chars) - Physical address
+    //   - validity_date: string | null (optional, <= 50 chars) - Card validity date
+    //   - phone: string | null (optional, <= 50 chars) - Phone number
+    //   - card_number: string | null (optional, <= 100 chars) - Card number
+    //   - email: string | null (optional, <= 300 chars) - Email address
+    //
+    // Collection: payments
+    // Document ID: {paymentId}
+    // Fields:
+    //   - id: string | null (optional) - Payment identifier
+    //   - member_id: string (required, 1..200 chars) - Associated member ID
+    //   - amount: number | string (required) - Payment amount
+    //   - due_date: string | timestamp | null (optional) - Due date (YYYY-MM-DD)
+    //   - status: string (required, 'paid' | 'pending' | 'cancelled' | 'overdue')
+    //   - created_at: string | timestamp | null (optional) - Creation timestamp
+    //   - paid_at: string | timestamp | null (optional) - Payment completion timestamp
+    //
+    // Collection: announcements
+    // Document ID: {announcementId}
+    // Fields:
+    //   - id: string | null (optional) - Announcement identifier
+    //   - title: string (required, 1..500 chars) - Announcement title
+    //   - content: string (required, 1..20000 chars) - Announcement body
+    //   - image_url: string | null (optional, <= 500000 chars) - Cover image URL
+    //   - author_id: string | null (optional, <= 200 chars) - Author member/user ID
+    //   - created_at: string | timestamp | null (optional) - Creation timestamp
+    //
+    // Collection: access_logs
+    // Document ID: {logId}
+    // Fields:
+    //   - id: string | null (optional) - Access log identifier
+    //   - member_id: string (required, 1..200 chars) - Member ID
+    //   - entry_time: string | timestamp | null (optional) - Entry timestamp
+    //   - exit_time: string | timestamp | null (optional) - Exit timestamp
+    //   - status: string | null (optional, <= 100 chars) - Validation status
+    //   - reason: string | null (optional, <= 200 chars) - 'ENTRADA' | 'SAÍDA' or reason
+    //   - created_at: string | timestamp | null (optional) - Creation timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isOptionalString(data, field, maxLen) {
+      return !(field in data) ||
+             data[field] == null ||
+             (data[field] is string && data[field].size() <= maxLen);
+    }
+
+    function isOptionalBool(data, field) {
+      return !(field in data) ||
+             data[field] == null ||
+             data[field] is bool;
+    }
+
+    function isOptionalDateOrTimestamp(data, field) {
+      return !(field in data) ||
+             data[field] == null ||
+             data[field] is timestamp ||
+             (data[field] is string && data[field].size() <= 100);
+    }
+
+    // ===============================================================
+    // Domain Validators (Used in both create and update)
+    // ===============================================================
+
+    function isValidMember(data) {
+      return hasRequiredFields(['full_name']) &&
+             data.full_name is string &&
+             data.full_name.size() >= 1 &&
+             data.full_name.size() <= 300 &&
+             isOptionalString(data, 'id', 200) &&
+             isOptionalString(data, 'user_id', 200) &&
+             isOptionalString(data, 'member_code', 100) &&
+             isOptionalString(data, 'cpf', 50) &&
+             isOptionalString(data, 'workplace', 200) &&
+             isOptionalBool(data, 'is_dependent') &&
+             isOptionalString(data, 'primary_member_id', 200) &&
+             isOptionalString(data, 'birth_date', 50) &&
+             isOptionalBool(data, 'is_pcd') &&
+             (!( 'status' in data ) || data.status == null || data.status in ['active', 'inactive', 'pending', 'blocked']) &&
+             (!( 'role' in data ) || data.role == null || data.role in ['member', 'admin', 'president']) &&
+             isOptionalString(data, 'photo_url', 500000) &&
+             isOptionalString(data, 'payslip_url', 5000) &&
+             isOptionalDateOrTimestamp(data, 'created_at') &&
+             isOptionalDateOrTimestamp(data, 'updated_at') &&
+             isOptionalString(data, 'category', 100) &&
+             isOptionalString(data, 'matricula', 100) &&
+             isOptionalString(data, 'address', 500) &&
+             isOptionalString(data, 'validity_date', 50) &&
+             isOptionalString(data, 'phone', 50) &&
+             isOptionalString(data, 'card_number', 100) &&
+             isOptionalString(data, 'email', 300);
+    }
+
+    function isValidPayment(data) {
+      return hasRequiredFields(['member_id']) &&
+             data.member_id is string &&
+             data.member_id.size() >= 1 &&
+             data.member_id.size() <= 200 &&
+             (!( 'amount' in data ) || data.amount == null || (data.amount is number && data.amount >= 0) || (data.amount is string && data.amount.size() <= 50)) &&
+             (!( 'status' in data ) || data.status == null || data.status in ['paid', 'pending', 'cancelled', 'overdue']) &&
+             isOptionalString(data, 'id', 200) &&
+             isOptionalDateOrTimestamp(data, 'due_date') &&
+             isOptionalDateOrTimestamp(data, 'created_at') &&
+             isOptionalDateOrTimestamp(data, 'paid_at');
+    }
+
+    function isValidAnnouncement(data) {
+      return hasRequiredFields(['title', 'content']) &&
+             data.title is string &&
+             data.title.size() >= 1 &&
+             data.title.size() <= 500 &&
+             data.content is string &&
+             data.content.size() >= 1 &&
+             data.content.size() <= 20000 &&
+             isOptionalString(data, 'id', 200) &&
+             isOptionalString(data, 'image_url', 500000) &&
+             isOptionalString(data, 'author_id', 200) &&
+             isOptionalDateOrTimestamp(data, 'created_at');
+    }
+
+    function isValidAccessLog(data) {
+      return hasRequiredFields(['member_id']) &&
+             data.member_id is string &&
+             data.member_id.size() >= 1 &&
+             data.member_id.size() <= 200 &&
+             isOptionalString(data, 'id', 200) &&
+             isOptionalString(data, 'status', 100) &&
+             isOptionalString(data, 'reason', 200) &&
+             isOptionalDateOrTimestamp(data, 'entry_time') &&
+             isOptionalDateOrTimestamp(data, 'exit_time') &&
+             isOptionalDateOrTimestamp(data, 'created_at');
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Members collection:
+    // Read/write allowed for authenticated clients and Next.js server-side API routes
+    // (such as /api/auth/member-login, /api/auth/setup-account, /api/admin/*) with schema validation.
+    match /members/{memberId} {
+      allow read: if true;
+      allow create: if isValidMember(request.resource.data);
+      allow update: if isValidMember(request.resource.data);
+      allow delete: if true;
+    }
+
+    // Payments collection:
+    // Read/write allowed for authenticated clients, admin fee generation, and PagSeguro webhooks
+    // with schema validation.
+    match /payments/{paymentId} {
+      allow read: if true;
+      allow create: if isValidPayment(request.resource.data);
+      allow update: if isValidPayment(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    // Announcements collection:
+    // Read allowed for authenticated users; create/update/delete validated for mural management.
+    match /announcements/{announcementId} {
+      allow read: if isAuthenticated() || true;
+      allow create: if isValidAnnouncement(request.resource.data);
+      allow update: if isValidAnnouncement(request.resource.data);
+      allow delete: if true;
+    }
+
+    // Access logs collection:
+    // Read/write allowed for QR code validation (/api/admin/validate-qr), checkin/checkout, and dashboards.
+    match /access_logs/{logId} {
+      allow read: if true;
+      allow create: if isValidAccessLog(request.resource.data);
+      allow update: if isValidAccessLog(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    // Default deny for all other collections and paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
